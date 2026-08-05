@@ -1,0 +1,143 @@
+User requirements 
+1. Support team requirements
+1.1 can view/create/update/delete tutorials
+1.2 can login/logout to/from system
+1.3 can view/create/update/delete system related news 
+1.4 can blur some parts of screenshot when uploading new tutorial
+1.5 can see/answer/delete user questions
+1.6 some questions and their answers can be selected for everyone to see
+1.7 see statistics about tutorials(which tutorial has highest number of likes etc )
+1.8 see/delete comments written by users on tutorials 
+1.9 audit logs for support staff (track actions taken by support team members like support staff X deleted a tutorial comment etc )
+1.10 can change the current status of user questions (waiting/answered/published  etc )
+1.11 can see the list of deleted tutorials, comments, questions
+1.12 can undo the deletion of tutorials, comments and questions
+
+
+2. Medical staff (main system clients)
+2.1 can login/logout to/from system
+2.2 can see recent news related with the main system
+2.3 can read tutorials 
+2.4 can search tutorial for keywords
+2.5 can leave like or dislike and comment on tutorial
+2.6 can leave question 
+2.7 can view tutorial version/ changelog
+2.8 bookmark/ save frequently used tutorials
+
+
+extra requirements 
+3.1 tutorials can be divided as for medical/ for customer support staff (how to do some admin things)
+
+system requirements 
+1. image blurring will be implemented in front end 
+2. when deleting tutorials, comments, questions, first soft delete will be taken
+3. when the question of medical staff is answered, there will be notification in system and will send email about it 
+
+
+tech stack selection
+1. backend - springboot 
+2. front end - nextjs 
+3. database - postgre
+
+for initial stages of development, the system will be local only since it is not agreed officially with karte.mn
+
+Overall system architecture: client server monolith
+next.js front end -- http/json -- spring boot backend -- postgresql db
+
+backend architecture: feature based modular structure
+src/main/java/com/karte/docs
+│
+├── config/                  # Global configs (Security, CORS, Mail, Swagger)
+├── shared/                  # Shared utilities, global exception handling, base entities
+│
+├── module/                  # Domain/Feature modules
+│   ├── auth/                # Login, logout, JWT filters, user management
+│   ├── tutorial/            # CRUD, search, bookmarks, reactions, soft-delete, versioning
+│   ├── comment/             # Comment management and soft-delete/restore
+│   ├── question/            # Support tickets, status workflow, public promotion
+│   ├── news/                # System announcements CRUD
+│   └── audit/               # Support staff action tracking logs
+
+more detailed backend modular structure 
+src/main/java/com/karte/docs/
+├── config/
+│   ├── JpaConfig.java
+│   ├── SecurityConfig.java
+│   └── CorsConfig.java
+│
+├── shared/
+│   ├── entity/
+│   │   └── BaseEntity.java
+│   ├── exception/
+│   │   ├── GlobalExceptionHandler.java
+│   │   └── ResourceNotFoundException.java
+│   └── dto/
+│       └── ApiResponse.java
+│
+└── module/
+    ├── auth/
+    │   ├── controller/
+    │   ├── service/
+    │   ├── repository/
+    │   ├── entity/ (User, Role)
+    │   └── dto/
+    ├── tutorial/
+    │   ├── controller/
+    │   ├── service/
+    │   ├── repository/
+    │   ├── entity/ (Tutorial, TutorialVersion, Bookmark, Reaction)
+    │   └── dto/
+    ├── comment/
+    │   ├── controller/
+    │   ├── service/
+    │   ├── repository/
+    │   ├── entity/ (Comment)
+    │   └── dto/
+    ├── question/
+    │   ├── controller/
+    │   ├── service/
+    │   ├── repository/
+    │   ├── entity/ (Question, Answer)
+    │   └── dto/
+    ├── news/
+    │   ├── controller/
+    │   ├── service/
+    │   ├── repository/
+    │   ├── entity/ (News)
+    │   └── dto/
+    └── audit/
+        ├── controller/
+        ├── service/
+        ├── repository/
+        ├── entity/ (AuditLog)
+        └── dto/
+
+inside each module, traditional 3 layered pattern will be followed.
+Presentation Layer (Controllers): Exposes REST endpoints (@RestController), validates incoming JSON requests, and maps DTOs.
+
+Business/Service Layer: Contains core rules (e.g., triggering email notifications when a question status changes to ANSWERED, recording audit logs when a support user deletes a comment).
+
+Persistence Layer (Repositories): Uses Spring Data JPA (JpaRepository) to query PostgreSQL, utilizing custom queries or filters to handle soft deletes (deleted_at IS NULL vs tracking deleted items for the recycle bin).
+
+
+frontend architecture: app router & route grouping 
+app/
+├── (auth)/
+│   └── login/               # Shared login page for both roles
+│
+├── (medical)/               # Client-side protected layout for Doctors/Nurses
+│   ├── dashboard/           # News, recent tutorials, search
+│   ├── tutorials/           # Read tutorials, view changelogs, leave likes/comments
+│   ├── bookmarks/           # Saved/frequently used tutorials
+│   └── questions/           # Submit questions, view answered tickets
+│
+├── (support)/               # Protected workspace for Support Team
+│   ├── management/          # Create/Update/Delete tutorials & news + Canvas Blur tool
+│   ├── questions/           # Answer tickets, change status, publish public Q&As
+│   ├── statistics/          # View tutorial metrics (highest likes, etc.)
+│   ├── audit-logs/          # View support tracking logs
+│   └── trash/               # View and restore soft-deleted items (tutorials, comments, questions)
+│
+├── api/                     # Any lightweight Next.js proxy/API routes if needed
+└── layout.tsx               # Global providers
+
