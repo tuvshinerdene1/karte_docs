@@ -36,7 +36,7 @@ public interface TutorialRepository extends JpaRepository<Tutorial, Long> {
 
     // statistic requirement highest version/activity -
     //TODO: placeholder for statistic requirement
-    List<Tutorial> findMostUpdatedTutorials();
-
+//    List<Tutorial> findMostUpdatedTutorials();
+//
 
 }
