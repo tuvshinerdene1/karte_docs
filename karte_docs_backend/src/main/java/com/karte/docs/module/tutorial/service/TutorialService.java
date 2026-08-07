@@ -25,6 +25,11 @@ public class TutorialService {
         return mapToResponse(tutorial);
     }
 
+    // used by other services to get the raw entity
+    public Tutorial getEntityById(Long id){
+        return tutorialRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Tutorial not found with id:" + id));
+    }
+
     @Transactional(readOnly = true)
     public List<TutorialResponse> search(String keyword){
         return tutorialRepository.searchByKeyword(keyword).stream()
