@@ -1,0 +1,158 @@
+This is a comprehensive, end-to-end testing guide for your Karte Documentation
+System. Since you have role-based security, versioning, and soft-deletes, the
+order of testing is very important.
+
+⚠️ Pre-Testing Setup
+
+1.  Base URL: http://localhost:8080/api/v1
+2.  Postman Variable: I recommend creating a variable in Postman named token.
+3.  Restart Backend: Ensure the DataInitializer runs to create your default
+    users.
+
+Phase 1: Authentication (The Gatekeeper)
+
+1. Login as Support
+
+  - POST /auth/login
+  - Body: {"email": "support@karte.mn", "password": "support123"}
+  - Action: Copy the token from the response and save it.
+
+2. Login as Medical
+
+  - POST /auth/login
+  - Body: {"email": "doctor@hospital.mn", "password": "doctor123"}
+  - Action: Keep this token handy for "Medical Staff" actions.
+
+Phase 2: News Management (Role: Support)
+
+Use the Support Token
+
+3. Create News
+
+  - POST /news
+  - Body: {"title": "System Maintenance", "content": "The system will be down
+    for 2 hours on Sunday."}
+
+4. View News (Medical & Support)
+
+  - GET /news
+  - Verification: Ensure the authorName says "Karte Support Team".
+
+Phase 3: Tutorial Lifecycle (Versioning & Audience)
+
+Use the Support Token
+
+5. Create Tutorial (Medical Audience)
+
+  - POST /tutorials
+  - Body:
+    {
+      "title": "How to use the Patient Portal",
+      "content": "Step 1: Login to portal. Step 2: Click Patients.",
+      "targetAudience": "MEDICAL"
+    }
+
+6. Update Tutorial (Version 2)
+
+  - PUT /tutorials/1
+  - Body:
+    {
+      "title": "How to use the Patient Portal v2",
+      "content": "Updated Step 2: Click the 'New Patient' button.",
+      "targetAudience": "MEDICAL",
+      "changelog": "Clarified button names for better UX"
+    }
+  - Verification: Check if currentVersionNumber is 2.
+
+7. Fetch by Audience (Medical Staff)
+
+  - Switch to Medical Token
+  - GET /tutorials?audience=MEDICAL
+
+Phase 4: Interactions (Comments, Reactions, Bookmarks)
+
+Use the Medical Token
+
+8. Post a Comment
+
+  - POST /comments
+  - Body: {"content": "This guide is a bit confusing on step 2.",
+    "tutorialId": 1}
+
+9. React (Like/Dislike Toggle)
+
+  - POST /tutorials/reactions
+  - Body: {"tutorialId": 1, "type": "LIKE"}
+  - Action: Send it twice to test the Toggle logic (Like should disappear then
+    reappear).
+
+10. Bookmark Tutorial
+
+  - POST /tutorials/bookmarks/1
+  - GET /tutorials/bookmarks (Verify it appears in your personal list).
+
+Phase 5: Question & Answer Workflow (Support Tickets)
+
+11. Ask a Question (Medical)
+
+  - Medical Token
+  - POST /questions
+  - Body: {"title": "App Crash", "content": "The app crashes when I open the lab
+    results."}
+
+12. Answer & Publish to FAQ (Support)
+
+  - Support Token
+  - POST /questions/1/answer
+  - Body: {"content": "Please update your iPad to the latest version.",
+    "makePublic": true}
+
+13. View Public FAQ
+
+  - GET /questions/public (Verify the answer is visible to everyone).
+
+Phase 6: Statistics & Search
+
+14. View Tutorial Stats
+
+  - GET /tutorials/reactions/1/stats
+  - Verification: Should show the count of Likes/Dislikes for Tutorial #1.
+
+15. Keyword Search
+
+  - GET /tutorials/search?q=Patient
+  - Verification: Should find the tutorial even if "Patient" is only in the
+    content and not the title.
+
+Phase 7: The Recycle Bin (Soft Delete & Restore)
+
+Use the Support Token
+
+16. Delete a Tutorial
+
+  - DELETE /tutorials/1
+  - GET /tutorials/trash (Verify it is in the trash).
+  - GET /tutorials (Verify it is not in the active list).
+
+17. Restore a Tutorial
+
+  - PUT /tutorials/1/restore
+  - GET /tutorials (Verify it is back in the active list).
+
+18. Delete a Comment (Moderation)
+
+  - DELETE /comments/1
+  - GET /comments/trash (Verify support can see it).
+
+Final Verification for your Internship Report
+
+If all the above steps pass, you have successfully demonstrated:
+
+1.  Requirement 1.1 - 1.12: Full Support Team workflow.
+2.  Requirement 2.1 - 2.8: Full Medical Staff workflow.
+3.  System Requirements 2 & 3: Soft deletes and system-wide state management.
+4.  Tech Stack Mastery: JWT Security, Spring Data JPA Native Queries, and
+    modular code structure.
+
+You are now ready to build the Next.js Frontend! Do you want to start with the
+Auth Layout (Login page) or the Medical Dashboard?

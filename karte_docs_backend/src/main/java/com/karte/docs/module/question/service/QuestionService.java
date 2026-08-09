@@ -4,6 +4,7 @@ import com.karte.docs.module.question.dto.*;
 import com.karte.docs.module.question.entity.*;
 import com.karte.docs.module.question.repository.*;
 import com.karte.docs.shared.exception.ResourceNotFoundException;
+import com.karte.docs.shared.service.EmailService;
 import com.karte.docs.shared.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,7 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final SecurityUtils securityUtils;
-    // TODO mail sender here
-    // private final JavaMailSender mailSender
+    private final EmailService emailService;
 
     @Transactional
     public QuestionResponse createQuestion(QuestionRequest request){
@@ -46,8 +46,17 @@ public class QuestionService {
             q.setStatus(QuestionStatus.PUBLISHED);
         }
 
-        // TODO send email notification here
+
         System.out.println("Triggering email to : " + (q.getAuthor() != null ? q.getAuthor().getEmail() : "user"));
+        if (q.getAuthor() != null && q.getAuthor().getEmail() != null) {
+            String subject = "Your question has been answered!";
+            String body = "Hello " + q.getAuthor().getFullName() + ",\n\n" +
+                    "Your question: \"" + q.getTitle() + "\" has received a new answer.\n\n" +
+                    "Answer:\n" + request.content() + "\n\n" +
+                    "View it here: [Next.js Link]";
+
+            emailService.sendSimpleEmail(q.getAuthor().getEmail(), subject, body);
+        }
         return mapToResponse(questionRepository.save(q));
     }
 
