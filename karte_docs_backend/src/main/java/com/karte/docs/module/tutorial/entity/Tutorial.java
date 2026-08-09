@@ -1,5 +1,6 @@
 package com.karte.docs.module.tutorial.entity;
 
+import com.karte.docs.module.auth.entity.User;
 import com.karte.docs.shared.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -29,4 +30,8 @@ public class Tutorial extends BaseEntity{
     private List<TutorialVersion> versions = new ArrayList<>();
 
     private int currentVersionNumber = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
 }

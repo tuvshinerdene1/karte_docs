@@ -4,6 +4,7 @@ import com.karte.docs.module.tutorial.dto.*;
 import com.karte.docs.module.tutorial.entity.*;
 import com.karte.docs.module.tutorial.repository.*;
 import com.karte.docs.shared.exception.ResourceNotFoundException;
+import com.karte.docs.shared.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.List;
 public class TutorialService {
     private final TutorialRepository tutorialRepository;
     private final TutorialVersionRepository versionRepository;
+    private final SecurityUtils securityUtils;
 
 
 
@@ -43,6 +45,7 @@ public class TutorialService {
         tutorial.setTitle(request.title());
         tutorial.setTargetAudience(TargetAudience.valueOf(request.targetAudience().toUpperCase()));
         tutorial.setCurrentVersionNumber(1);
+        tutorial.setCreatedBy(securityUtils.getCurrentUser());
         Tutorial saved = tutorialRepository.save(tutorial);
 
         saveVersion(saved, request.content(), "Initial Release");
@@ -93,14 +96,17 @@ public class TutorialService {
 
     private void saveVersion(Tutorial tutorial, String content, String changeLog){
         TutorialVersion version = new TutorialVersion();
+
         version.setTutorial(tutorial);
         version.setContent(content);
         version.setVersionNumber(tutorial.getCurrentVersionNumber());
         version.setChangelog(changeLog);
+        version.setAuthor(securityUtils.getCurrentUser());
+
         versionRepository.save(version);
     }
 
-    private TutorialResponse mapToResponse(Tutorial t){
+    public TutorialResponse mapToResponse(Tutorial t){
         // find latest version content
         TutorialVersion latest = t.getVersions().stream()
                 .filter(v -> v.getVersionNumber() == t.getCurrentVersionNumber())
@@ -114,6 +120,7 @@ public class TutorialService {
                 t.getTargetAudience().name(),
                 t.getCurrentVersionNumber(),
                 latest != null ? latest.getChangelog(): "",
+                latest != null && latest.getAuthor() != null ? latest.getAuthor().getFullName() : "System",
                 t.getUpdatedAt()
         );
     }

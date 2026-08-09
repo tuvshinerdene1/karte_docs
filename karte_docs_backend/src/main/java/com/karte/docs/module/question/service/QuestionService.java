@@ -4,6 +4,7 @@ import com.karte.docs.module.question.dto.*;
 import com.karte.docs.module.question.entity.*;
 import com.karte.docs.module.question.repository.*;
 import com.karte.docs.shared.exception.ResourceNotFoundException;
+import com.karte.docs.shared.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,16 +15,19 @@ import java.util.List;
 public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
+    private final SecurityUtils securityUtils;
     // TODO mail sender here
     // private final JavaMailSender mailSender
 
     @Transactional
     public QuestionResponse createQuestion(QuestionRequest request){
         Question q = new Question();
+
         q.setTitle(request.title());
         q.setContent(request.content());
         q.setStatus(QuestionStatus.WAITING);
-        // author will be set from SecurityContext later
+        q.setAuthor(securityUtils.getCurrentUser());
+
         return mapToResponse(questionRepository.save(q));
     }
 
@@ -33,6 +37,7 @@ public class QuestionService {
         Answer a = new Answer();
         a.setContent(request.content());
         a.setQuestion(q);
+        a.setResponder(securityUtils.getCurrentUser());
         answerRepository.save(a);
 
         q.setStatus(QuestionStatus.ANSWERED);

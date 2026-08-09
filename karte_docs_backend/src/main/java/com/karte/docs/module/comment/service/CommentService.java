@@ -6,6 +6,7 @@ import com.karte.docs.module.comment.repository.CommentRepository;
 import com.karte.docs.module.tutorial.entity.Tutorial;
 import com.karte.docs.module.tutorial.service.TutorialService;
 import com.karte.docs.shared.exception.ResourceNotFoundException;
+import com.karte.docs.shared.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.util.List;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final TutorialService tutorialService;
+    private final SecurityUtils securityUtils;
 
     @Transactional
     public CommentResponse addComment(CommentRequest request){
@@ -25,8 +27,8 @@ public class CommentService {
         Comment comment = new Comment();
         comment.setContent(request.content());
         comment.setTutorial(tutorial);
+        comment.setAuthor(securityUtils.getCurrentUser());
 
-        // TODO : in the future, set author from SecurityContext
         return mapToResponse(commentRepository.save(comment));
     }
 

@@ -9,5 +9,6 @@ public record TutorialResponse (
         String targetAudience,
         int currentVersionNumber,
         String lastChangelog,
+        String authorName,
         LocalDateTime updatedAt
 ){}

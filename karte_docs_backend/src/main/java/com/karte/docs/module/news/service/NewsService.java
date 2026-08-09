@@ -6,6 +6,7 @@ import com.karte.docs.module.news.dto.NewsResponse;
 import com.karte.docs.module.news.entity.News;
 import com.karte.docs.module.news.repository.NewsRepository;
 import com.karte.docs.shared.exception.ResourceNotFoundException;
+import com.karte.docs.shared.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NewsService {
     private final NewsRepository newsRepository;
+    private final SecurityUtils securityUtils;
 
     public List<NewsResponse> getAllActiveNews(){
         return newsRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
@@ -29,9 +31,11 @@ public class NewsService {
     @Transactional
     public NewsResponse createNews(NewsRequest request){
         News news = new News();
+
         news.setTitle(request.title());
         news.setContent(request.content());
-        // TODO: set author from SecurityContext after Auth is implemented
+        news.setAuthor(securityUtils.getCurrentUser());
+
         return mapToResponse(newsRepository.save(news));
     }
 
