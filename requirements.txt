@@ -165,7 +165,7 @@ karte_docs_frontend/
 │   │   │   ├── page.tsx           # Tutorial & News management dashboard
 │   │   │   ├── new/page.tsx       # Create tutorial + Canvas Blur tool
 │   │   │   └── edit/[id]/page.tsx # Edit tutorial (bump version & changelog)
-│   │   ├── questions/
+│   │   ├── ticket/
 │   │   │   └── page.tsx           # Answer tickets, change status, publish Q&A
 │   │   ├── statistics/
 │   │   │   └── page.tsx           # Analytics (likes, views, popular content)
