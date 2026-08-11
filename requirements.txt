@@ -141,3 +141,51 @@ app/
 ├── api/                     # Any lightweight Next.js proxy/API routes if needed
 └── layout.tsx               # Global providers
 
+front end actual folder structure:
+karte_docs_frontend/
+├── app/
+│   ├── (auth)/
+│   │   └── login/
+│   │       └── page.tsx           # Single login page with role detection
+│   ├── (medical)/                 # Medical Staff route group
+│   │   ├── layout.tsx             # Medical layout (TopNav + Medical Sidebar)
+│   │   ├── dashboard/
+│   │   │   └── page.tsx           # Recent news + quick search + popular guides
+│   │   ├── tutorials/
+│   │   │   ├── page.tsx           # Tutorial search & category list
+│   │   │   └── [id]/
+│   │   │       └── page.tsx       # Detail view (Changelogs, Likes, Comments)
+│   │   ├── bookmarks/
+│   │   │   └── page.tsx           # Saved / frequently used tutorials
+│   │   └── questions/
+│   │       └── page.tsx           # Ask questions & view ticket statuses
+│   ├── (support)/                 # Support Team workspace
+│   │   ├── layout.tsx             # Support admin layout (Admin Sidebar)
+│   │   ├── management/
+│   │   │   ├── page.tsx           # Tutorial & News management dashboard
+│   │   │   ├── new/page.tsx       # Create tutorial + Canvas Blur tool
+│   │   │   └── edit/[id]/page.tsx # Edit tutorial (bump version & changelog)
+│   │   ├── questions/
+│   │   │   └── page.tsx           # Answer tickets, change status, publish Q&A
+│   │   ├── statistics/
+│   │   │   └── page.tsx           # Analytics (likes, views, popular content)
+│   │   ├── audit-logs/
+│   │   │   └── page.tsx           # Action logs for support staff
+│   │   └── trash/
+│   │       └── page.tsx           # Soft-deleted items & restore actions
+│   ├── globals.css
+│   ├── layout.tsx                 # Root layout (Auth Provider, Toaster, Fonts)
+│   └── page.tsx                   # Middleware redirect or root landing
+├── components/
+│   ├── ui/                        # shadcn UI components
+│   ├── shared/                    # Header, Sidebar, Confirmation Modals
+│   ├── blur-tool/                 # Canvas image blur editor component
+│   └── tutorial/                  # Tutorial card, Comment section, Version history
+├── context/
+│   └── auth-context.tsx           # Global Auth state (Token, User details, Role)
+├── lib/
+│   ├── api.ts                     # Axios instance with Spring Boot baseURL & JWT interceptor
+│   └── utils.ts                   # shadcn `cn` utility
+└── types/
+    └── index.ts                   # TypeScript interfaces matching Spring Boot DTOs
+
