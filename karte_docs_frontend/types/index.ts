@@ -16,6 +16,20 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface ApiResponse<T>{
+  message:string;
+  data: T;
+  timestamp: string;
+}
+
+export interface CommentResponse{
+  id:number;
+  content:string;
+  authorName:string;
+  tutorialId:number;
+  createdAt:string;
+}
+
 export interface Tutorial {
   id: number;
   title: string;
