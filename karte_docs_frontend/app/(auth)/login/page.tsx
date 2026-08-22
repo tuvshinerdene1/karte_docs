@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { api } from '@/lib/api';
-import { AuthResponse } from '@/types';
+import { ApiResponse, AuthResponse, Role } from '@/types';
 import { 
   Stethoscope, 
   Headphones, 
@@ -40,18 +40,29 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const response = await api.post<AuthResponse>('/auth/login', {
+      // Expect the wrapper ApiResponse containing your flat AuthResponse record
+      const response = await api.post<ApiResponse<{ token: string; email: string; role: Role; fullName: string }>>('/auth/login', {
         email,
         password,
       });
 
-      const { token, user } = response.data;
+      const result = response.data.data;
+      
+      // Reconstruct the token and user object to match your frontend state expectation
+      const token = result.token;
+      const user = {
+        id: 1, // Fallback ID since your backend record doesn't send it yet
+        email: result.email,
+        fullName: result.fullName,
+        role: result.role,
+      };
+
       login(token, user);
     } catch (err: unknown) {
       const apiError = err as ApiError;

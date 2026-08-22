@@ -24,35 +24,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain)
+            throws ServletException, IOException {
 
-        throws ServletException, IOException{
+        final String authHeader = request.getHeader("Authorization");
 
-            final String authHeader = request.getHeader("Authorization");
-            // 1. check if the header is missing or doesn't start with bearer
-            if (authHeader == null || !authHeader.startsWith("Bearer ")){
+        // 1. check if the header is missing or doesn't start with bearer
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 2. extract the token
+        final String jwt = authHeader.substring(7);
+
+        if (jwt.trim().isEmpty() || jwt.equalsIgnoreCase("undefined")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            if (blacklistedTokenRepository.existsByToken(jwt)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            // 2. extract the token (substring 7 removes "Bearer")
-            final String jwt = authHeader.substring(7);
 
-            if (blacklistedTokenRepository.existsByToken(jwt)){
-                filterChain.doFilter(request, response); // exit without setting authentication
-                return;
-            }
             final String userEmail = jwtUtils.extractEmail(jwt);
 
             // 3. If email is present and user is not already authenticated
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
                 // 4. validate the token
-                if (jwtUtils.isTokenValid(jwt, userDetails)){
+                if (jwtUtils.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities()
                     );
@@ -62,9 +71,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-
-            // 6. continue the filter chain
-            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            // Silently catch malformed or expired tokens on public routes / bad headers
+            logger.debug("Could not set user authentication in security context: {}");
         }
-    }
 
+        // 6. continue the filter chain
+        filterChain.doFilter(request, response);
+    }
+}
