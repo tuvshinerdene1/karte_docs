@@ -31,7 +31,7 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401 && typeof window !== 'undefined'){
-            localStorage.removeItem('karte_token');
+            localStorage.removeItem ('karte_token');
             localStorage.removeItem('karte_user');
             if (!window.location.pathname.startsWith('/login')){
                 window.location.href = '/login';

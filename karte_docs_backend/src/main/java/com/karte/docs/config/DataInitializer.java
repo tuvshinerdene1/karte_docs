@@ -16,22 +16,26 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args){
-        if (userRepository.count() == 0){
-            // create support user
-            User support = new User();
-            support.setEmail("support@karte.mn");
-            support.setPassword(passwordEncoder.encode("support123"));
-            support.setRole(Role.ROLE_SUPPORT);
-            support.setFullName("Karte Support team");
-            userRepository.save(support);
+            // 1. Create Support User if not exists
+            createUserIfNotFound("support@karte.mn", "support123", Role.ROLE_SUPPORT, "Karte Support Team");
 
-            // create medical user
-            User medical = new User();
-            medical.setEmail("doctor@hospital.mn");
-            medical.setPassword(passwordEncoder.encode("doctor123"));
-            medical.setRole(Role.ROLE_MEDICAL);
-            medical.setFullName("DR. Bat Erdene");
-            userRepository.save(medical);
+            // 2. Create Medical User 1 if not exists
+            createUserIfNotFound("doctor@hospital.mn", "doctor123", Role.ROLE_MEDICAL, "DR. Bat Erdene");
+
+            // 3. Create Medical User 2 if not exists
+            createUserIfNotFound("doctor2@hospital.mn", "doctor123", Role.ROLE_MEDICAL, "DR. Dorjoo");
+
+    }
+
+    public void createUserIfNotFound(String email, String password, Role role, String fullName){
+        if (userRepository.findByEmail(email).isEmpty()){
+            User user = new User();
+            user.setEmail(email);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setRole(role);
+            user.setFullName(fullName);
+            userRepository.save(user);
+            System.out.println("Seeded user:" + email);
         }
     }
 }

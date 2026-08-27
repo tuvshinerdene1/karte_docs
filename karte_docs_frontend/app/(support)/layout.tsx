@@ -25,7 +25,7 @@ const SUPPORT_NAV_ITEMS = [
   { href: '/management', label: 'Tutorials & News', icon: FileText },
   { href: '/tickets', label: 'Support Tickets', icon: HelpCircle },
   { href: '/statistics', label: 'Analytics', icon: BarChart3 },
-  { href: '/audit-logs', label: 'Audit Logs', icon: History },
+  // { href: '/audit-logs', label: 'Audit Logs', icon: History },
   { href: '/trash', label: 'Recycle Bin', icon: Trash2 },
 ];
 

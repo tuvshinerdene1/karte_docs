@@ -9,9 +9,7 @@ import {
   CheckCircle2, 
   Globe, 
   User, 
-  Send, 
   Trash2, 
-  AlertCircle,
   Loader2,
   Inbox
 } from 'lucide-react';
@@ -29,7 +27,6 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { SelectRoot } from '@base-ui/react';
 
 export default function SupportTicketPage(){
     const [questions, setQuestions] = useState<Question[]>([]);
@@ -86,45 +83,64 @@ export default function SupportTicketPage(){
     const waitingTickets = questions.filter(q => q.status === 'WAITING');
     const resolvedTickets = questions.filter(q => q.status !== 'WAITING');
 
-     return (
+    // Shared TabTrigger styles for high contrast and consistent dark-theme integration
+    const tabTriggerClass = "gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all";
+
+    return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white">Support Tickets</h1>
-        <p className="text-slate-400">Manage user inquiries and maintain the public FAQ.</p>
+        <p className="text-slate-400 text-sm">Manage user inquiries and maintain the public FAQ.</p>
       </div>
 
       <Tabs defaultValue="inbox" className="w-full">
-        <TabsList className="bg-slate-900 border-slate-800">
-          <TabsTrigger value="inbox" className="gap-2">
+        <TabsList className="bg-slate-900/80 border border-slate-800 p-1">
+          <TabsTrigger value="inbox" className={tabTriggerClass}>
             <Inbox className="h-4 w-4" /> New ({waitingTickets.length})
           </TabsTrigger>
-          <TabsTrigger value="resolved" className="gap-2">
+          <TabsTrigger value="resolved" className={tabTriggerClass}>
             <CheckCircle2 className="h-4 w-4" /> Resolved ({resolvedTickets.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="inbox" className="pt-4 space-y-4">
-          {loading ? <div className="flex justify-center py-10"><Loader2 className="animate-spin text-emerald-500" /></div> :
-            waitingTickets.length > 0 ? waitingTickets.map(q => (
+          {loading ? (
+            <div className="flex justify-center items-center py-12 text-emerald-500 gap-2">
+              <Loader2 className="animate-spin h-5 w-5" />
+              <span className="text-sm font-medium text-slate-400">Loading new tickets...</span>
+            </div>
+          ) : waitingTickets.length > 0 ? (
+            waitingTickets.map(q => (
               <TicketCard 
                 key={q.id} 
                 question={q} 
                 onAnswer={() => setSelectedQuestion(q)}
                 onDelete={() => deleteQuestion(q.id)}
               />
-            )) : <EmptyTickets message="No new tickets. All caught up!" />
-          }
+            ))
+          ) : (
+            <EmptyTickets message="No new tickets. All caught up!" />
+          )}
         </TabsContent>
 
         <TabsContent value="resolved" className="pt-4 space-y-4">
-          {resolvedTickets.map(q => (
-            <TicketCard 
-              key={q.id} 
-              question={q} 
-              onDelete={() => deleteQuestion(q.id)}
-              isResolved 
-            />
-          ))}
+          {loading ? (
+            <div className="flex justify-center items-center py-12 text-emerald-500 gap-2">
+              <Loader2 className="animate-spin h-5 w-5" />
+              <span className="text-sm font-medium text-slate-400">Loading resolved tickets...</span>
+            </div>
+          ) : resolvedTickets.length > 0 ? (
+            resolvedTickets.map(q => (
+              <TicketCard 
+                key={q.id} 
+                question={q} 
+                onDelete={() => deleteQuestion(q.id)}
+                isResolved 
+              />
+            ))
+          ) : (
+            <EmptyTickets message="No resolved tickets found." />
+          )}
         </TabsContent>
       </Tabs>
 
@@ -132,22 +148,22 @@ export default function SupportTicketPage(){
       <Dialog open={!!selectedQuestion} onOpenChange={(open) => !open && setSelectedQuestion(null)}>
         <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Respond to Ticket</DialogTitle>
+            <DialogTitle className="text-slate-100">Respond to Ticket</DialogTitle>
           </DialogHeader>
           
           {selectedQuestion && (
             <div className="space-y-4 py-4">
-              <div className="p-4 rounded-lg bg-slate-950 border border-slate-800">
+              <div className="p-4 rounded-lg bg-slate-950/80 border border-slate-800">
                 <p className="text-xs font-bold text-slate-500 uppercase mb-1">User Question:</p>
-                <p className="text-sm font-semibold mb-2">{selectedQuestion.title}</p>
-                <p className="text-sm text-slate-400">{selectedQuestion.content}</p>
+                <p className="text-sm font-semibold mb-2 text-slate-100">{selectedQuestion.title}</p>
+                <p className="text-sm text-slate-400 leading-relaxed">{selectedQuestion.content}</p>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-500 uppercase">Your Response</Label>
+                <Label className="text-xs font-bold text-slate-400 uppercase">Your Response</Label>
                 <Textarea 
                   placeholder="Type your helpful answer here..."
-                  className="bg-slate-950 border-slate-800 min-h-[150px]"
+                  className="bg-slate-950/80 border-slate-800 text-slate-200 text-sm placeholder:text-slate-500 focus-visible:ring-emerald-500 min-h-[150px] resize-y"
                   value={answerContent}
                   onChange={(e) => setAnswerContent(e.target.value)}
                 />
@@ -155,7 +171,7 @@ export default function SupportTicketPage(){
 
               <div className="flex items-center justify-between p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
                 <div className="space-y-0.5">
-                  <Label className="text-sm text-emerald-400 font-semibold">Publish to FAQ</Label>
+                  <Label className="text-sm text-emerald-400 font-semibold cursor-pointer">Publish to FAQ</Label>
                   <p className="text-[10px] text-slate-500">Make this Q&A visible to all medical staff.</p>
                 </div>
                 <Switch checked={makePublic} onCheckedChange={setMakePublic} />
@@ -163,12 +179,12 @@ export default function SupportTicketPage(){
             </div>
           )}
 
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setSelectedQuestion(null)}>Cancel</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setSelectedQuestion(null)} className="text-slate-400 hover:text-white hover:bg-slate-800">Cancel</Button>
             <Button 
                 onClick={handleAnswer} 
                 disabled={isSubmitting || !answerContent.trim()}
-                className="bg-emerald-600 hover:bg-emerald-500 min-w-[120px]"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium min-w-[120px] transition-colors"
             >
               {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : "Send Answer"}
             </Button>
@@ -180,36 +196,40 @@ export default function SupportTicketPage(){
 }
 
 function TicketCard({question, onAnswer, onDelete, isResolved = false}: any){
-     return (
-    <Card className="bg-slate-900 border-slate-800">
+  return (
+    <Card className="bg-slate-900/60 border-slate-800/80 hover:border-slate-700/80 transition-all shadow-sm">
       <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
         <div className="space-y-1">
           <div className="flex items-center gap-2 mb-1">
-            <CardTitle className="text-lg text-white">{question.title}</CardTitle>
-            {question.status === 'PUBLISHED' && <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] gap-1"><Globe className="h-2 w-2" /> FAQ</Badge>}
+            <CardTitle className="text-base text-slate-100">{question.title}</CardTitle>
+            {question.status === 'PUBLISHED' && (
+              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] gap-1 px-1.5 py-0.5">
+                <Globe className="h-2.5 w-2.5" /> FAQ
+              </Badge>
+            )}
           </div>
-          <div className="flex items-center gap-3 text-[10px] text-slate-500">
-            <span className="flex items-center gap-1"><User className="h-3 w-3" /> {question.authorEmail}</span>
-            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date(question.createdAt).toLocaleString()}</span>
+          <div className="flex items-center gap-3 text-[11px] text-slate-500">
+            <span className="flex items-center gap-1"><User className="h-3 w-3 text-slate-400" /> {question.authorEmail}</span>
+            <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-slate-400" /> {new Date(question.createdAt).toLocaleString()}</span>
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="text-slate-500 hover:text-red-400" onClick={onDelete}>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-400 hover:bg-red-500/10" onClick={onDelete}>
           <Trash2 className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-slate-300">{question.content}</p>
+      <CardContent className="space-y-3">
+        <p className="text-xs text-slate-300 leading-relaxed">{question.content}</p>
         {isResolved && question.answer && (
-            <div className="mt-4 p-4 rounded bg-slate-950 border-l-2 border-emerald-500">
-                <p className="text-[10px] font-bold text-emerald-500 uppercase mb-1">Response:</p>
-                <p className="text-sm text-slate-400 italic">{question.answer}</p>
-            </div>
+          <div className="mt-3 p-3.5 rounded-lg bg-slate-950/80 border-l-2 border-emerald-500 space-y-1">
+            <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Response</p>
+            <p className="text-xs text-slate-300 whitespace-pre-wrap">{question.answer}</p>
+          </div>
         )}
       </CardContent>
       {!isResolved && (
         <CardFooter className="pt-0 flex justify-end">
-          <Button size="sm" onClick={onAnswer} className="bg-emerald-600 hover:bg-emerald-500 gap-2">
-            <MessageSquare className="h-4 w-4" /> Respond
+          <Button size="sm" onClick={onAnswer} className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs h-8 gap-2 transition-colors">
+            <MessageSquare className="h-3.5 w-3.5" /> Respond
           </Button>
         </CardFooter>
       )}
@@ -218,10 +238,10 @@ function TicketCard({question, onAnswer, onDelete, isResolved = false}: any){
 }
 
 function EmptyTickets({message}: {message:string}){
-      return (
-    <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-slate-800 rounded-xl">
-      <CheckCircle2 className="h-10 w-10 text-emerald-900 mb-3" />
-      <p className="text-slate-500 text-sm">{message}</p>
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/30">
+      <CheckCircle2 className="h-10 w-10 text-emerald-500/40 mb-3" />
+      <p className="text-slate-400 text-sm">{message}</p>
     </div>
   );
 }

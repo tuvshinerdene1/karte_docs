@@ -10,14 +10,11 @@ import {
   Newspaper, 
   MessageSquare, 
   HelpCircle,
-  Loader2,
-  AlertTriangle
+  Loader2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner"; // Or any toast library you use
-import { patchConsoleMethod } from 'next/dist/next-devtools/shared/forward-logs-shared';
 
 export default function RecycleBinPage(){
     const [tutorials, setTutorials] = useState<Tutorial[]>([]);
@@ -47,24 +44,30 @@ export default function RecycleBinPage(){
         }
     };
 
-    useEffect(() => {fetchTrash();}, []);
+    useEffect(() => { fetchTrash(); }, []);
 
-    const handleRestore = async (type: string, id:number) =>{
+    const handleRestore = async (type: string, id: number) => {
         try {
             const endpoint = type === 'tutorial' ? 'tutorials' : type + 's';
             await api.put(`/${endpoint}/${id}/restore`);
             fetchTrash();
-            alert(`${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            alert(`${type.charAt(0).toUpperCase() + type.slice(1)} restored`);
         } catch (error) {
             console.error(error);
         }
     };
 
     if (loading){
-        return(
-           <div className="flex justify-center py-20"><Loader2 className="animate-spin text-emerald-500" /></div> 
+        return (
+           <div className="flex justify-center items-center py-20 text-emerald-500 gap-2">
+             <Loader2 className="animate-spin h-6 w-6" />
+             <span className="text-sm font-medium text-slate-400">Loading trash items...</span>
+           </div> 
         );
     }
+
+    // Shared TabTrigger styles for high contrast and consistent dark-theme integration
+    const tabTriggerClass = "gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all";
 
     return (
     <div className="space-y-6">
@@ -79,11 +82,19 @@ export default function RecycleBinPage(){
       </div>
 
       <Tabs defaultValue="tutorials" className="w-full">
-        <TabsList className="bg-slate-900 border-slate-800">
-          <TabsTrigger value="tutorials" className="gap-2"><FileText className="h-4 w-4" /> Tutorials ({tutorials.length})</TabsTrigger>
-          <TabsTrigger value="news" className="gap-2"><Newspaper className="h-4 w-4" /> News ({news.length})</TabsTrigger>
-          <TabsTrigger value="questions" className="gap-2"><HelpCircle className="h-4 w-4" /> Questions ({questions.length})</TabsTrigger>
-          <TabsTrigger value="comments" className="gap-2"><MessageSquare className="h-4 w-4" /> Comments ({comments.length})</TabsTrigger>
+        <TabsList className="bg-slate-900/80 border border-slate-800 p-1">
+          <TabsTrigger value="tutorials" className={tabTriggerClass}>
+            <FileText className="h-4 w-4" /> Tutorials ({tutorials.length})
+          </TabsTrigger>
+          <TabsTrigger value="news" className={tabTriggerClass}>
+            <Newspaper className="h-4 w-4" /> News ({news.length})
+          </TabsTrigger>
+          <TabsTrigger value="questions" className={tabTriggerClass}>
+            <HelpCircle className="h-4 w-4" /> Questions ({questions.length})
+          </TabsTrigger>
+          <TabsTrigger value="comments" className={tabTriggerClass}>
+            <MessageSquare className="h-4 w-4" /> Comments ({comments.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tutorials" className="pt-4">{renderTable(tutorials, 'tutorial', handleRestore)}</TabsContent>
@@ -95,31 +106,36 @@ export default function RecycleBinPage(){
   );
 }
 
-function renderTable(items: any[], type: string, onRestore: any){
-      if (items.length === 0) return (
-    <div className="py-20 text-center border-2 border-dashed border-slate-800 rounded-xl text-slate-600">
+function renderTable(items: any[], type: string, onRestore: any) {
+  if (items.length === 0) return (
+    <div className="py-20 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/30 text-slate-500 text-sm">
       No deleted {type}s found.
-    </div>);
-
+    </div>
+  );
 
   return (
-    <div className="rounded-md border border-slate-800 bg-slate-900/50">
+    <div className="rounded-xl border border-slate-800/80 bg-slate-900/50 backdrop-blur-sm overflow-hidden shadow-sm">
       <Table>
-        <TableHeader>
-          <TableRow className="border-slate-800">
-            <TableHead className="text-slate-300">Content / Title</TableHead>
-            <TableHead className="text-slate-300 text-right">Action</TableHead>
+        <TableHeader className="bg-slate-900/80 border-b border-slate-800">
+          <TableRow className="border-slate-800 hover:bg-transparent">
+            <TableHead className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Content / Title</TableHead>
+            <TableHead className="text-slate-400 text-xs font-semibold uppercase tracking-wider text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {items.map((item) => (
-            <TableRow key={item.id} className="border-slate-800">
+            <TableRow key={item.id} className="border-slate-800/60 hover:bg-slate-800/40 transition-colors">
               <TableCell>
-                <p className="font-medium text-white">{item.title || item.content.substring(0, 60) + '...'}</p>
-                <p className="text-[10px] text-slate-500">Deleted: {item.deletedAt || 'Recently'}</p>
+                <p className="font-medium text-slate-100 text-sm">{item.title || (item.content ? item.content.substring(0, 60) + '...' : 'Untitled')}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Deleted: {item.deletedAt ? new Date(item.deletedAt).toLocaleDateString() : 'Recently'}</p>
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="outline" size="sm" onClick={() => onRestore(type, item.id)} className="border-emerald-500/30 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/20 gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onRestore(type, item.id)} 
+                  className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 hover:text-emerald-300 gap-2 h-8 text-xs font-medium transition-colors"
+                >
                   <RotateCcw className="h-3.5 w-3.5" /> Restore
                 </Button>
               </TableCell>
@@ -130,4 +146,3 @@ function renderTable(items: any[], type: string, onRestore: any){
     </div>
   );
 }
-

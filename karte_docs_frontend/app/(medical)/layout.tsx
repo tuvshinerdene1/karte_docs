@@ -12,7 +12,8 @@ import {
   LogOut, 
   ShieldCheck,
   User as UserIcon,
-  Search
+  Search,
+  Newspaper
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -21,8 +22,10 @@ import { Input } from '@/components/ui/input';
 const MEDICAL_NAV_ITEMS = [
     {href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard},
     {href: '/tutorials', label: 'Tutorials', icon: BookOpen},
+    {href: '/news', label: 'News', icon: Newspaper},
     {href: '/bookmarks', label: 'Bookmarks', icon: Bookmark},
     {href: '/questions', label: 'My questions', icon: MessageSquare},
+
     
 ];
 
@@ -103,7 +106,7 @@ export default function MedicalLayout({children}: {children: React.ReactNode}){
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/30">
+        {/* <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/30">
           <div className="relative w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
             <Input 
@@ -112,9 +115,9 @@ export default function MedicalLayout({children}: {children: React.ReactNode}){
             />
           </div>
           <div className="text-xs text-slate-500">
-            System Status: <span className="text-emerald-500">Online</span>
+            s: <span className="text-emerald-500">Online</span>
           </div>
-        </header>
+        </header> */}
 
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-5xl mx-auto">

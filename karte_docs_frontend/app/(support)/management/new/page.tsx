@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -8,12 +9,14 @@ import {
     ArrowLeft,
     Image as ImageIcon,
     Eye,
-    Loader2
+    Loader2,
+    ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -37,7 +40,9 @@ export default function NewTutorialPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSave = async () => {
-        if (!title || !content) return alert("Please fill title and content");
+        if (!title.trim() || !content.trim()) {
+            return alert("Please fill in both the title and content.");
+        }
         setIsSubmitting(true);
         try {
             await api.post('/tutorials', {
@@ -48,96 +53,128 @@ export default function NewTutorialPage() {
             });
             router.push('/management');
         } catch (error) {
-            console.error(error);
+            console.error("Failed to save tutorial:", error);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const onBlurImageSaved = (blob: Blob) => {
-        // In a real app, you'd upload this to your /tutorials/images/upload endpoint
-        // and get a URL back. For the sprint, we'll convert to Base64 to show it works!
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64data = reader.result;
             setContent(prev => prev + `\n\n![Blurred Image](${base64data})\n`);
-            alert("Image blurred and appended to content!");
+            alert("Image redacted and appended to content!");
         };
         reader.readAsDataURL(blob);
     };
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <Button variant="ghost" onClick={() => router.back()} className="text-slate-400">
+            {/* Header / Top Navigation */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <Button 
+                    variant="ghost" 
+                    onClick={() => router.back()} 
+                    className="text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors"
+                >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                 </Button>
-                <Button onClick={handleSave} disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-500">
-                    {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <><Save className="h-4 w-4 mr-2" /> Publish Tutorial</>}
+                <Button 
+                    onClick={handleSave} 
+                    disabled={isSubmitting} 
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium gap-2 transition-colors shadow-sm"
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="animate-spin h-4 w-4" />
+                            <span>Publishing...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Save className="h-4 w-4" />
+                            <span>Publish Tutorial</span>
+                        </>
+                    )}
                 </Button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Editor Side */}
+                {/* Editor Main Content */}
                 <div className="lg:col-span-2 space-y-4">
-                    <Card className="p-6 bg-slate-900 border-slate-800 space-y-4">
+                    <Card className="p-6 bg-slate-900/60 border-slate-800/80 backdrop-blur-sm shadow-sm space-y-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Tutorial Title</label>
+                            <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tutorial Title</Label>
                             <Input
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="e.g. How to use Karte Lab Results"
-                                className="bg-slate-950 border-slate-800 text-lg py-6"
+                                className="bg-slate-950/80 border-slate-800 text-slate-100 text-lg py-6 placeholder:text-slate-500 focus-visible:ring-emerald-500"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <div className="flex justify-between items-end">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Guide Content (Markdown)</label>
+                            <div className="flex justify-between items-center">
+                                <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Guide Content (Markdown)</Label>
                                 <Dialog>
-                                    <DialogTrigger>
-                                        <Button variant="outline" size="sm" className="h-7 text-xs border-slate-800 gap-1.5">
-                                            <ImageIcon className="h-3 w-3" /> Blur Screenshot
+                                    <DialogTrigger asChild>
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="h-8 text-xs border-slate-700 bg-slate-800/50 text-slate-200 hover:bg-slate-800 hover:text-white gap-1.5 transition-colors"
+                                        >
+                                            <ImageIcon className="h-3.5 w-3.5 text-emerald-400" />
+                                            <span>Blur Screenshot</span>
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-4xl bg-slate-900 border-slate-800 text-white">
-                                        <DialogHeader><DialogTitle>Image Redaction Tool</DialogTitle></DialogHeader>
-                                        <BlurCanvas onSave={onBlurImageSaved} />
+                                    <DialogContent className="max-w-4xl bg-slate-900 border-slate-800 text-slate-100">
+                                        <DialogHeader>
+                                            <DialogTitle className="text-slate-100 flex items-center gap-2">
+                                                <ShieldAlert className="h-5 w-5 text-emerald-400" /> Image Redaction Tool
+                                            </DialogTitle>
+                                        </DialogHeader>
+                                        <div className="pt-2">
+                                            <BlurCanvas onSave={onBlurImageSaved} />
+                                        </div>
                                     </DialogContent>
                                 </Dialog>
                             </div>
                             <Textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                placeholder="Write your guide instructions here..."
-                                className="bg-slate-950 border-slate-800 min-h-[400px] font-mono text-sm leading-relaxed"
+                                placeholder="Write your guide instructions here using Markdown..."
+                                className="bg-slate-950/80 border-slate-800 text-slate-200 min-h-[420px] font-mono text-sm leading-relaxed placeholder:text-slate-500 focus-visible:ring-emerald-500 resize-y"
                             />
                         </div>
                     </Card>
                 </div>
 
-                {/* Settings Side */}
+                {/* Settings Sidebar */}
                 <div className="lg:col-span-1 space-y-4">
-                    <Card className="p-6 bg-slate-900 border-slate-800 space-y-6">
+                    <Card className="p-6 bg-slate-900/60 border-slate-800/80 backdrop-blur-sm shadow-sm space-y-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Target Audience</label>
+                            <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Audience</Label>
                             <Select value={audience} onValueChange={(val) => { if (val) setAudience(val); }}>
-                                <SelectTrigger className="bg-slate-950 border-slate-800">
+                                <SelectTrigger className="bg-slate-950/80 border-slate-800 text-slate-200 focus:ring-emerald-500">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-slate-900 border-slate-800">
-                                    <SelectItem value="MEDICAL">Medical Staff (Doctors/Nurses)</SelectItem>
-                                    <SelectItem value="SUPPORT">Support Staff (Internal)</SelectItem>
+                                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                                    <SelectItem value="MEDICAL" className="focus:bg-slate-800 focus:text-emerald-400">
+                                        Medical Staff (Doctors/Nurses)
+                                    </SelectItem>
+                                    <SelectItem value="SUPPORT" className="focus:bg-slate-800 focus:text-emerald-400">
+                                        Support Staff (Internal)
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                            <h4 className="text-xs font-bold text-blue-400 uppercase mb-2 flex items-center gap-2">
-                                <Eye className="h-3 w-3" /> Live Preview
+                        <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                            <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                                <Eye className="h-3.5 w-3.5 text-emerald-400" /> Visibility Status
                             </h4>
-                            <p className="text-[11px] text-slate-400 leading-relaxed">
-                                Tutorials published for <strong>{audience}</strong> will be immediately visible on their dashboard.
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Tutorials published for <strong className="text-slate-200 font-semibold">{audience === 'MEDICAL' ? 'Medical Staff' : 'Support Staff'}</strong> will be immediately available on their dashboard.
                             </p>
                         </div>
                     </Card>
