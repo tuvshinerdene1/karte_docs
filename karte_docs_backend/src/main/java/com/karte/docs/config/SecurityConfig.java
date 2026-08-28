@@ -45,6 +45,14 @@ public class SecurityConfig {
                         .requestMatchers("/news/**", "/api/v1/news/**").permitAll()
                         // Explicitly allow pre-flight OPTIONS requests if needed
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+
+                        .requestMatchers("/tutorials/images/**").hasRole("SUPPORT")
+                        .requestMatchers(HttpMethod.POST, "/tutorials/**").hasRole("SUPPORT")
+                        .requestMatchers(HttpMethod.DELETE, "/tutorials/**").hasRole("SUPPORT")
+                        .requestMatchers(HttpMethod.PUT, "/tutorials/**").hasRole("SUPPORT")
+
+
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -57,7 +65,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Allow your Next.js frontend origin
-        configuration.setAllowedOrigins(List.of("http://192.168.1.14:3000", "http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("http://192.168.1.14:3000", "http://localhost:3000", "http://192.168.1.14:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

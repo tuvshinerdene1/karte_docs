@@ -1,6 +1,10 @@
 spring:
   application:
     name: karte-docs
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
 
   datasource:
     url: jdbc:postgresql://localhost:5432/karte_docs_db
@@ -34,3 +38,8 @@ server:
   address: 0.0.0.0
   servlet:
     context-path: /api/v1
+
+cloudinary:
+  cloud-name: rqz4bgdn
+  api-key: 433353218519396
+  api-secret: WBScuR5QwbCB-PHijjUdSBN2kaY

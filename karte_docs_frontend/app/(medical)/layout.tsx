@@ -1,15 +1,15 @@
 'use client'
 
-import React , {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  Bookmark, 
-  MessageSquare, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  BookOpen,
+  Bookmark,
+  MessageSquare,
+  LogOut,
   ShieldCheck,
   User as UserIcon,
   Search,
@@ -20,37 +20,33 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const MEDICAL_NAV_ITEMS = [
-    {href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard},
-    {href: '/tutorials', label: 'Tutorials', icon: BookOpen},
-    {href: '/news', label: 'News', icon: Newspaper},
-    {href: '/bookmarks', label: 'Bookmarks', icon: Bookmark},
-    {href: '/questions', label: 'My questions', icon: MessageSquare},
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/tutorials', label: 'Tutorials', icon: BookOpen },
+  { href: '/news', label: 'News', icon: Newspaper },
+  { href: '/bookmarks', label: 'Bookmarks', icon: Bookmark },
+  { href: '/questions', label: 'My questions', icon: MessageSquare },
 
-    
+
 ];
 
-export default function MedicalLayout({children}: {children: React.ReactNode}){
-    const {user, logout, isAuthenticated, isLoading} = useAuth();
-    const pathname = usePathname();
-    const router = useRouter();
+export default function MedicalLayout({ children }: { children: React.ReactNode }) {
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
 
-    useEffect(()=>{
-        if (isLoading) return;
-        if (!isAuthenticated){
-            router.replace('/login');
-        } else if (user?.role !== 'ROLE_MEDICAL'){
-            router.replace('/management'); // redirect support staff to their area
-        }
-    }, [user, isAuthenticated, isLoading, router]);
-
-    if (isLoading || !user){
-        return(
-      <div className="flex h-screen w-full items-center justify-center bg-slate-950 text-slate-400">
-        <LoaderComponent />
-      </div>
-        );
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      router.replace('/login');
     }
-     return (
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return <div className="bg-slate-950 h-screen" />;
+  }
+
+  if (!user) return null;
+  return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
       {/* Sidebar */}
       <aside className="w-64 border-r border-slate-800 bg-slate-900/50 flex flex-col justify-between hidden md:flex">
@@ -68,11 +64,10 @@ export default function MedicalLayout({children}: {children: React.ReactNode}){
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start text-sm gap-3 h-11 ${
-                      isActive
+                    className={`w-full justify-start text-sm gap-3 h-11 ${isActive
                         ? 'bg-blue-500/10 text-blue-400 font-medium'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     {item.label}
@@ -130,11 +125,11 @@ export default function MedicalLayout({children}: {children: React.ReactNode}){
 }
 
 
-function LoaderComponent(){
-    return (
+function LoaderComponent() {
+  return (
     <div className="flex items-center gap-2">
       <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
       <span className="text-sm">Initializing Medical Portal...</span>
     </div>
-    );
+  );
 }

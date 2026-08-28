@@ -1,18 +1,16 @@
-// app/(support)/layout.tsx
-
 'use client';
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { 
-  FileText, 
-  HelpCircle, 
-  BarChart3, 
-  History, 
-  Trash2, 
-  LogOut, 
+import {
+  FileText,
+  HelpCircle,
+  BarChart3,
+  History,
+  Trash2,
+  LogOut,
   ShieldCheck,
   Headphones,
   User as UserIcon
@@ -35,28 +33,21 @@ export default function SupportLayout({
   children: React.ReactNode;
 }) {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
       router.replace('/login');
-    } else if (user?.role !== 'ROLE_SUPPORT') {
-      router.replace('/dashboard');
     }
-  }, [user, isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading || !user) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-950 text-slate-400">
-        <div className="flex items-center gap-2">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-          <span className="text-sm font-medium">Verifying Support Access...</span>
-        </div>
-      </div>
-    );
+  if (isLoading) {
+    return <div className="bg-slate-950 h-screen" />;
   }
+
+  if (!user) return null;
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
@@ -86,11 +77,10 @@ export default function SupportLayout({
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start text-sm gap-3 h-10 ${
-                      isActive
+                    className={`w-full justify-start text-sm gap-3 h-10 ${isActive
                         ? 'bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20 hover:text-emerald-300'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     {item.label}

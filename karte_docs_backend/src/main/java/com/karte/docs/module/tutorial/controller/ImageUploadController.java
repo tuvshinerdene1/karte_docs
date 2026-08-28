@@ -1,30 +1,24 @@
 package com.karte.docs.module.tutorial.controller;
 
 import com.karte.docs.shared.dto.ApiResponse;
+import com.karte.docs.shared.service.CloudinaryService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/tutorials/images")
+@RequiredArgsConstructor
 public class ImageUploadController {
-    private final String UPLOAD_DIR = "uploads/tutorials/";
+    private final CloudinaryService cloudinaryService;
 
     @PostMapping("/upload")
-    public ApiResponse<String> uploadImage(@RequestParam("file") MultipartFile file) throws IOException{
-        // Ensure directory exists
-        Files.createDirectories(Paths.get(UPLOAD_DIR));
-
-        // Generate unique name
-        String fileName = UUID.randomUUID().toString() + '_' + file.getOriginalFilename();
-        Path path = Paths.get(UPLOAD_DIR + fileName);
-
-        // save file
-        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-
-        // return the URL (In production, this would be a full URL)
-        return ApiResponse.success("/api/v1/tutorials/images/" + fileName, "Image uploaded successfully");
+    public ApiResponse<String> upload (@RequestParam("file") MultipartFile file) throws IOException{
+        System.out.println("Received upload request for: " + file.getOriginalFilename());
+        String url = cloudinaryService.uploadImage(file);
+        return ApiResponse.success(url, "Image uploaded to Cloudinary successfully");
     }
 }
