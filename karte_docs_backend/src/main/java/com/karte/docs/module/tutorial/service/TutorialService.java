@@ -5,6 +5,7 @@ import com.karte.docs.module.tutorial.entity.*;
 import com.karte.docs.module.tutorial.repository.*;
 import com.karte.docs.shared.exception.ResourceNotFoundException;
 import com.karte.docs.shared.utils.SecurityUtils;
+import com.karte.docs.module.auth.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,8 @@ public class TutorialService {
     private final TutorialRepository tutorialRepository;
     private final TutorialVersionRepository versionRepository;
     private final SecurityUtils securityUtils;
+    private final ReactionRepository reactionRepository;
+    private final BookmarkRepository bookmarkRepository;
 
 
 
@@ -113,6 +116,15 @@ public class TutorialService {
                 .findFirst()
                 .orElse(null);
 
+        long likes = reactionRepository.countByTutorialIdAndType(t.getId(), ReactionType.LIKE);
+        long dislikes = reactionRepository.countByTutorialIdAndType(t.getId(), ReactionType.DISLIKE);
+
+        boolean bookmarked = false;
+        User currentUser = securityUtils.getCurrentUser();
+        if(currentUser != null){
+            bookmarked = bookmarkRepository.findByUserIdAndTutorialId(currentUser.getId(), t.getId()).isPresent();
+        }
+
         return new TutorialResponse(
                 t.getId(),
                 t.getTitle(),
@@ -121,6 +133,9 @@ public class TutorialService {
                 t.getCurrentVersionNumber(),
                 latest != null ? latest.getChangelog(): "",
                 latest != null && latest.getAuthor() != null ? latest.getAuthor().getFullName() : "System",
+                likes,
+                dislikes,
+                bookmarked,
                 t.getUpdatedAt()
         );
     }

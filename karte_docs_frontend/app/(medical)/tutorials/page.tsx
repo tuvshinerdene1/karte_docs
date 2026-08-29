@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Tutorial, ApiResponse } from '@/types';
 import { 
@@ -9,7 +9,8 @@ import {
   Clock, 
   ChevronRight, 
   Loader2,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,9 +24,9 @@ export default function TutorialsPage() {
   const [loading, setLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
-  const fetchTutorials = async (query?: string) => {
+  const fetchTutorials = useCallback(async (query?: string) => {
     try {
-      setLoading(true);
+      setIsSearching(true);
       let url = '/tutorials?audience=MEDICAL';
 
       if (query && query.trim() !== '') {
@@ -40,40 +41,44 @@ export default function TutorialsPage() {
       setLoading(false);
       setIsSearching(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTutorials();
-  }, []);
+  }, [fetchTutorials]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearching(true);
-    fetchTutorials(searchQuery);
-  };
-
+  // Handle instant clearing
   const handleClearSearch = () => {
     setSearchQuery('');
     fetchTutorials('');
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchTutorials(searchQuery);
+  };
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header & Search Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-800 pb-5">
         <div>
+          <div className="flex items-center gap-2 text-emerald-400 font-semibold mb-1 text-xs uppercase tracking-wider">
+            <FileText className="h-4 w-4" />
+            <span>Documentation</span>
+          </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-100">Medical Guides</h1>
-          <p className="text-sm text-slate-400 mt-1">Search and browse official system documentation.</p>
+          <p className="text-sm text-slate-400 mt-1">Search and browse official system documentation and clinical workflows.</p>
         </div>
         
-        <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-96">
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full sm:w-80 md:w-96">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
             <Input 
-              placeholder="Search by title or content..." 
+              placeholder="Search guides..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 bg-slate-900/80 border-slate-800 text-sm focus-visible:ring-blue-500 text-slate-200 placeholder:text-slate-500"
+              className="pl-9 pr-8 bg-slate-900 border-slate-800 text-sm focus-visible:ring-1 focus-visible:ring-emerald-500/50 text-slate-200 placeholder:text-slate-500 h-9"
             />
             {searchQuery && (
               <button
@@ -89,29 +94,33 @@ export default function TutorialsPage() {
             type="submit" 
             disabled={isSearching} 
             size="sm"
-            className="bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 h-9 text-xs transition-colors"
+            variant="outline"
+            className="border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-slate-100 h-9 px-3 text-xs"
           >
-            {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+            {isSearching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Search"}
           </Button>
         </form>
       </div>
 
       {/* Content Area */}
       {loading ? (
-        <div className="flex h-64 items-center justify-center text-slate-400">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-            <span className="text-sm font-medium">Loading tutorials...</span>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-48 rounded-xl bg-slate-900/40 border border-slate-800/60 animate-pulse p-5 space-y-3">
+              <div className="h-4 w-12 bg-slate-800 rounded" />
+              <div className="h-5 w-3/4 bg-slate-800 rounded" />
+              <div className="h-12 w-full bg-slate-800/50 rounded" />
+            </div>
+          ))}
         </div>
       ) : tutorials.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {tutorials.map((tutorial) => (
             <Link key={tutorial.id} href={`/tutorials/${tutorial.id}`} className="block h-full">
-              <Card className="bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-800/50 transition-all group flex flex-col h-full shadow-sm">
-                <CardHeader className="p-5 pb-3 space-y-2">
+              <Card className="bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/90 transition-all group flex flex-col h-full shadow-sm">
+                <CardHeader className="p-5 pb-3 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-[10px] bg-blue-500/10 text-blue-400 border-blue-500/20 font-mono px-2 py-0.5">
+                    <Badge variant="outline" className="text-[10px] bg-emerald-950/40 text-emerald-400 border-emerald-800/50 font-mono px-2 py-0.5">
                       v{tutorial.currentVersionNumber}
                     </Badge>
                   </div>
@@ -120,20 +129,20 @@ export default function TutorialsPage() {
                   </CardTitle>
                 </CardHeader>
                 
-                <CardContent className="p-5 pt-0 flex-1">
+                <CardContent className="px-5 py-0 flex-1">
                   <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">
                     {tutorial.content}
                   </p>
                 </CardContent>
 
-                <CardFooter className="p-5 pt-3 border-t border-slate-800/40 mt-auto flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 text-slate-400 font-medium">
-                    <Clock className="h-3.5 w-3.5 text-slate-500" />
+                <CardFooter className="p-5 pt-3 border-t border-slate-800/40 mt-4 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-100 font-medium">
+                    <Clock className="h-3.5 w-3.5 text-slate-100" />
                     <span>{new Date(tutorial.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-blue-400 font-medium group-hover:translate-x-0.5 transition-transform">
+                  <div className="flex items-center gap-1 text-slate-700 group-hover:text-blue-400 font-medium transition-colors">
                     <span>Read Guide</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
+                    <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </CardFooter>
               </Card>
@@ -141,7 +150,7 @@ export default function TutorialsPage() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/30">
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-slate-800/80 rounded-xl bg-slate-900/20">
           <div className="bg-slate-900 p-3.5 rounded-full mb-3 border border-slate-800">
             <BookOpen className="h-6 w-6 text-slate-500" />
           </div>
@@ -153,12 +162,12 @@ export default function TutorialsPage() {
           </p>
           {searchQuery && (
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="sm"
               onClick={handleClearSearch}
-              className="text-blue-400 hover:text-blue-300 hover:bg-blue-950/30 text-xs mt-3 h-8"
+              className="border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 text-xs mt-4 h-8"
             >
-              Clear search and show all
+              Clear search filter
             </Button>
           )}
         </div>

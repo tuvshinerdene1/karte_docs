@@ -67,9 +67,10 @@ export interface Question {
   title: string;
   content: string;
   status: QuestionStatus;
+  authorName: string;      // Matches backend
+  answerContent?: string;  // CHANGED from 'answer' to 'answerContent'
+  responderName?: string;  // Optional: if you want to show who answered
   isPublic: boolean;
-  authorEmail: string;
-  answer?: string;
   createdAt: string;
 }
 

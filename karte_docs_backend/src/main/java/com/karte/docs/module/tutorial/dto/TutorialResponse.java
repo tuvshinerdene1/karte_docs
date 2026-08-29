@@ -10,5 +10,8 @@ public record TutorialResponse (
         int currentVersionNumber,
         String lastChangelog,
         String authorName,
+        long likeCount,
+        long dislikeCount,
+        boolean isBookmarked,
         LocalDateTime updatedAt
 ){}

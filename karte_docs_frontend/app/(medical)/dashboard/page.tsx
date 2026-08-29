@@ -43,33 +43,33 @@ export default function MedicalDashboard() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="space-y-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="border-b border-slate-800 pb-5">
         <h1 className="text-3xl font-bold tracking-tight text-slate-100">Welcome back</h1>
         <p className="text-slate-400 mt-1 text-sm">Stay updated with the latest system news and medical tutorials.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* News Section */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="flex items-center justify-between pb-1">
+      <div className="space-y-10">
+        {/* Row 1: News Section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-slate-200 font-semibold">
               <Newspaper className="h-4 w-4 text-blue-400" />
               <h2 className="text-lg">Recent News</h2>
             </div>
             <Link href="/news">
-              <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-100 text-xs h-8 px-2">
-                View all <ChevronRight className="h-3 w-3 ml-1" />
+              <Button size="sm" variant="outline" className="text-xs border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-slate-100">
+                View all <ChevronRight className="h-3 w-3 ml-1 text-slate-400" />
               </Button>
             </Link>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {news.map((item) => (
               <Card 
                 key={item.id} 
-                className="bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900 transition-all shadow-sm"
+                className="bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900 transition-all shadow-sm flex flex-col justify-between"
               >
                 <CardHeader className="p-4 space-y-2">
                   <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
@@ -86,23 +86,23 @@ export default function MedicalDashboard() {
               </Card>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Recent Tutorials Section */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between pb-1">
+        {/* Row 2: Recent Tutorials Section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-slate-200 font-semibold">
               <FileText className="h-4 w-4 text-emerald-400" />
               <h2 className="text-lg">New Tutorials</h2>
             </div>
             <Link href="/tutorials">
               <Button size="sm" variant="outline" className="text-xs border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-slate-100">
-                Browse all
+                View all <ChevronRight className="h-3 w-3 ml-1 text-slate-400" />
               </Button>
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {tutorials.map((tutorial) => (
               <Link key={tutorial.id} href={`/tutorials/${tutorial.id}`} className="block h-full">
                 <Card className="bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-800/50 transition-all group h-full flex flex-col justify-between shadow-sm">
@@ -119,7 +119,7 @@ export default function MedicalDashboard() {
               </Link>
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

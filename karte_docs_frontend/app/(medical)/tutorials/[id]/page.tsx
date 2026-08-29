@@ -48,6 +48,7 @@ export default function TutorialDetailPage({params}:{params: Promise<{id:string}
           tutorialId={tutorial.id} 
           initialLikes={tutorial.likeCount || 0}
           initialDislikes={tutorial.dislikeCount || 0}
+          initialBookmarked={tutorial.isBookmarked || false}
         />
 
         <TutorialContent content={tutorial.content} />

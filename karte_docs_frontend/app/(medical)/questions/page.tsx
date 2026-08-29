@@ -219,10 +219,15 @@ function QuestionCard({
   getStatusBadge?: (status: string) => React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const hasAnswer = Boolean(question.answer && question.answer.trim().length > 0);
+
+  // 1. Log the question object to your browser console (F12) to see the real field names
+  // console.log("Question Data:", question);
+
+  // 2. Use 'answerContent' to match the Spring Boot DTO
+  const hasAnswer = Boolean(question.answerContent && question.answerContent.trim().length > 0);
 
   const toggleOpen = () => {
-    setIsOpen((prev) => !prev);
+    if (hasAnswer) setIsOpen((prev) => !prev);
   };
 
   return (
@@ -231,14 +236,6 @@ function QuestionCard({
         hasAnswer ? 'cursor-pointer hover:border-slate-700/80 hover:bg-slate-900/90' : ''
       }`}
       onClick={toggleOpen}
-      role={hasAnswer ? "button" : undefined}
-      tabIndex={hasAnswer ? 0 : undefined}
-      onKeyDown={(e) => {
-        if (hasAnswer && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          toggleOpen();
-        }
-      }}
     >
       <CardHeader className="p-5 pb-3 space-y-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -258,31 +255,27 @@ function QuestionCard({
             <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
               <Clock className="h-3.5 w-3.5 text-slate-500" />
               <span>
-                {new Date(question.createdAt).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
+                {new Date(question.createdAt).toLocaleDateString()}
               </span>
             </div>
           </div>
         </div>
       </CardHeader>
       
-      {/* Content displays if question is expanded OR if there is no answer yet (so user sees their question details) */}
+      {/* Content displays if question is expanded OR if there is no answer yet */}
       <CardContent className={`p-5 pt-0 space-y-4 ${!hasAnswer || isOpen ? 'block' : 'hidden'}`}>
         <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap pl-7 border-l-2 border-slate-800">
           {question.content}
         </p>
 
-        {question.answer && (
-          <div className="p-4 rounded-lg bg-slate-950/60 border border-blue-500/20 space-y-2 ml-7 animate-in fade-in duration-200">
-            <div className="flex items-center gap-2 text-blue-400 text-xs font-semibold tracking-wide">
+        {hasAnswer && (
+          <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20 space-y-2 ml-7 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 text-blue-400 text-xs font-bold tracking-wide uppercase">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               <span>Support Response</span>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed pl-6 whitespace-pre-wrap">
-              {question.answer}
+            <p className="text-xs text-slate-200 leading-relaxed pl-6 whitespace-pre-wrap">
+              {question.answerContent} {/* CHANGED THIS */}
             </p>
           </div>
         )}
@@ -290,7 +283,7 @@ function QuestionCard({
       
       {hasAnswer && !isOpen && (
         <div className="px-5 py-2 bg-slate-950/40 border-t border-slate-800/40 flex justify-center">
-          <span className="text-[10px] text-blue-400 font-medium tracking-wide uppercase">
+          <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase">
             Click to view answer
           </span>
         </div>
@@ -298,7 +291,6 @@ function QuestionCard({
     </Card>
   );
 }
-
 function LoadingState({ message }: { message: string }) {
   return (
     <div className="flex h-64 items-center justify-center text-slate-400">

@@ -40,19 +40,24 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Explicitly permit public auth and news endpoints with context path
                         .requestMatchers("/auth/**", "/api/v1/auth/**").permitAll()
                         .requestMatchers("/news/**", "/api/v1/news/**").permitAll()
-                        // Explicitly allow pre-flight OPTIONS requests if needed
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/tutorials/reactions/**").hasAnyRole("MEDICAL", "SUPPORT")
 
+                        // 1. Specific sub-paths for both roles (Bookmarks & Reactions)
+                        // These must come BEFORE the generic /tutorials/** rule
+                        .requestMatchers("/tutorials/bookmarks/**", "/tutorials/reactions/**").hasAnyRole("MEDICAL", "SUPPORT")
 
+                        // 2. Image uploads still only for Support
                         .requestMatchers("/tutorials/images/**").hasRole("SUPPORT")
+
+                        // 3. Strict rules for main Tutorial management
                         .requestMatchers(HttpMethod.POST, "/tutorials/**").hasRole("SUPPORT")
-                        .requestMatchers(HttpMethod.DELETE, "/tutorials/**").hasRole("SUPPORT")
                         .requestMatchers(HttpMethod.PUT, "/tutorials/**").hasRole("SUPPORT")
+                        .requestMatchers(HttpMethod.DELETE, "/tutorials/**").hasRole("SUPPORT")
 
-
+                        // 4. Everything else (like GET tutorials)
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
