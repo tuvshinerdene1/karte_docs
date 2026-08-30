@@ -1,5 +1,6 @@
 package com.karte.docs.module.tutorial.service;
 
+import com.karte.docs.module.auth.entity.User;
 import com.karte.docs.module.tutorial.dto.ReactionRequest;
 import com.karte.docs.module.tutorial.dto.TutorialStats;
 import com.karte.docs.module.tutorial.entity.Reaction;
@@ -7,6 +8,7 @@ import com.karte.docs.module.tutorial.entity.ReactionType;
 import com.karte.docs.module.tutorial.entity.Tutorial;
 import com.karte.docs.module.tutorial.repository.ReactionRepository;
 import com.karte.docs.module.tutorial.repository.TutorialRepository;
+import com.karte.docs.shared.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,16 +20,17 @@ import java.util.Optional;
 public class ReactionService {
     private final ReactionRepository reactionRepository;
     private final TutorialService tutorialService;
-    private final TutorialRepository tutorialRepository;
+    private final SecurityUtils securityUtils;
+
 
     @Transactional
     public void react(ReactionRequest request){
         ReactionType newType = ReactionType.valueOf(request.type().toUpperCase());
         Tutorial tutorial = tutorialService.getEntityById(request.tutorialId());
-        // TODO: get real user id from securityContext
-        Long userId = 1L;
 
-        Optional<Reaction> existing = reactionRepository.findByUserIdAndTutorialId(userId, tutorial.getId());
+        User currentUser = securityUtils.getCurrentUser();
+
+        Optional<Reaction> existing = reactionRepository.findByUserIdAndTutorialId(currentUser.getId(), tutorial.getId());
 
         if (existing.isPresent()){
             Reaction reaction = existing.get();
@@ -46,6 +49,7 @@ public class ReactionService {
             Reaction reaction = new Reaction();
             reaction.setType(newType);
             reaction.setTutorial(tutorial);
+            reaction.setUser(currentUser);
             reactionRepository.save(reaction);
         }
     }
