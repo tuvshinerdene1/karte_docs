@@ -1,0 +1,1 @@
+DB_URL=jdbc:postgresql://localhost:5432/karte_docs_db;DB_USER=admin;DB_PASSWORD=1234;MAIL_USERNAME=tuvshin.erdene25@gmail.com;MAIL_PASSWORD=thov aljn sote kgac;CLOUDINARY_CLOUD_NAME=rqz4bgdn;CLOUDINARY_API_KEY=433353218519396;CLOUDINARY_API_SECRET=WBScuR5QwbCB-PHijjUdSBN2kaY

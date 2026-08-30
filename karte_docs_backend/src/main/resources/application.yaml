@@ -7,9 +7,9 @@ spring:
       max-request-size: 20MB
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/karte_docs_db
-    username: admin
-    password: 1234
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/karte_docs_db}
+    username: ${DB_USER:admin}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -22,24 +22,27 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:your-email@gmail.com}
-    password: ${MAIL_PASSWORD:your-app-password}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   address: 0.0.0.0
   servlet:
     context-path: /api/v1
 
 cloudinary:
-  cloud-name: rqz4bgdn
-  api-key: 433353218519396
-  api-secret: WBScuR5QwbCB-PHijjUdSBN2kaY
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
