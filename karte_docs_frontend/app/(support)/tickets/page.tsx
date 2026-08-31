@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '@/lib/api';
 import { Question, ApiResponse } from '@/types';
 import { 
@@ -32,7 +32,7 @@ export default function SupportTicketPage(){
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // answering state
+    // Answering state
     const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
     const [answerContent, setAnswerContent] = useState('');
     const [makePublic, setMakePublic] = useState(false);
@@ -54,19 +54,26 @@ export default function SupportTicketPage(){
         fetchQuestions();
     }, []);
 
-    const handleAnswer = async () =>{
+    // Reset dialog state when selected question changes
+    const handleOpenModal = (question: Question) => {
+        setSelectedQuestion(question);
+        setAnswerContent('');
+        setMakePublic(false);
+    };
+
+    const handleAnswer = async () => {
         if (!selectedQuestion || !answerContent.trim()) return;
 
         setIsSubmitting(true);
         try {
-            await api.post(`/questions/${selectedQuestion.id}/answer`,{
+            await api.post(`/questions/${selectedQuestion.id}/answer`, {
                 content: answerContent,
                 makePublic: makePublic
             });
             setSelectedQuestion(null);
             setAnswerContent('');
             setMakePublic(false);
-            fetchQuestions();
+            await fetchQuestions();
         } catch (error){
             console.error("Error answering question", error);
         } finally {
@@ -76,14 +83,17 @@ export default function SupportTicketPage(){
 
     const deleteQuestion = async (id: number) => {
         if (!confirm("Are you sure you want to delete this ticket?")) return;
-        await api.delete(`/questions/${id}`);
-        fetchQuestions();
+        try {
+            await api.delete(`/questions/${id}`);
+            await fetchQuestions();
+        } catch (error) {
+            console.error("Failed to delete ticket", error);
+        }
     };
 
-    const waitingTickets = questions.filter(q => q.status === 'WAITING');
-    const resolvedTickets = questions.filter(q => q.status !== 'WAITING');
+    const waitingTickets = useMemo(() => questions.filter(q => q.status === 'WAITING'), [questions]);
+    const resolvedTickets = useMemo(() => questions.filter(q => q.status !== 'WAITING'), [questions]);
 
-    // Shared TabTrigger styles for high contrast and consistent dark-theme integration
     const tabTriggerClass = "gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all";
 
     return (
@@ -114,7 +124,7 @@ export default function SupportTicketPage(){
               <TicketCard 
                 key={q.id} 
                 question={q} 
-                onAnswer={() => setSelectedQuestion(q)}
+                onAnswer={() => handleOpenModal(q)}
                 onDelete={() => deleteQuestion(q.id)}
               />
             ))
@@ -195,7 +205,14 @@ export default function SupportTicketPage(){
   );
 }
 
-function TicketCard({question, onAnswer, onDelete, isResolved = false}: any){
+function TicketCard({ question, onAnswer, onDelete, isResolved = false }: any) {
+  // Extract answer text whether it's directly on question, nested object, or array
+  const extractedAnswer = 
+    question.answerContent || 
+    question.answer?.content || 
+    (Array.isArray(question.answers) && question.answers[0]?.content) || 
+    "";
+
   return (
     <Card className="bg-slate-900/60 border-slate-800/80 hover:border-slate-700/80 transition-all shadow-sm">
       <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
@@ -219,10 +236,10 @@ function TicketCard({question, onAnswer, onDelete, isResolved = false}: any){
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-slate-300 leading-relaxed">{question.content}</p>
-        {isResolved && question.answer && (
+        {isResolved && extractedAnswer && (
           <div className="mt-3 p-3.5 rounded-lg bg-slate-950/80 border-l-2 border-emerald-500 space-y-1">
             <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Response</p>
-            <p className="text-xs text-slate-300 whitespace-pre-wrap">{question.answer}</p>
+            <p className="text-xs text-slate-300 whitespace-pre-wrap">{extractedAnswer}</p>
           </div>
         )}
       </CardContent>
@@ -237,7 +254,7 @@ function TicketCard({question, onAnswer, onDelete, isResolved = false}: any){
   );
 }
 
-function EmptyTickets({message}: {message:string}){
+function EmptyTickets({ message }: { message: string }){
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/30">
       <CheckCircle2 className="h-10 w-10 text-emerald-500/40 mb-3" />
