@@ -19,4 +19,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query(value = "SELECT * FROM comment WHERE id = :id", nativeQuery = true)
     Optional<Comment> findByIdIncludingDeleted(@Param("id") Long id);
+
+    // find only top level comments for a tutorial
+    List<Comment> findByTutorialIdAndParentIsNullOrderByCreatedAtDesc(Long tutorialId);
 }

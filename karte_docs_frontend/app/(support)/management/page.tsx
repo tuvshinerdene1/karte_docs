@@ -3,41 +3,43 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Tutorial, News, ApiResponse } from '@/types';
-import { 
-  Plus, 
-  FileEdit, 
-  Trash2, 
-  FileText, 
-  Newspaper, 
-  PlusCircle, 
-  Loader2,
-  UserCheck,
-  Megaphone
+import {
+    Plus,
+    FileEdit,
+    Trash2,
+    FileText,
+    Newspaper,
+    PlusCircle,
+    Loader2,
+    UserCheck,
+    Megaphone,
+    MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter,
+    DialogDescription
 } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { CommentResponse } from '../../../types/index';
 
 export default function ManagementPage() {
     const [tutorials, setTutorials] = useState<Tutorial[]>([]);
@@ -49,21 +51,34 @@ export default function ManagementPage() {
     const [newsContent, setNewsContent] = useState('');
     const [isNewsDialogOpen, setIsNewsDialogOpen] = useState(false);
     const [isSubmittingNews, setIsSubmittingNews] = useState(false);
+    const [comments, setComments] = useState<CommentResponse[]>([]);
 
     const loadData = useCallback(async () => {
         try {
-            const [tutRes, newsRes] = await Promise.all([
+            const [tutRes, newsRes, comRes] = await Promise.all([
                 api.get<ApiResponse<Tutorial[]>>('/tutorials?audience=MEDICAL'),
-                api.get<ApiResponse<News[]>>('/news')
+                api.get<ApiResponse<News[]>>('/news'),
+                api.get<ApiResponse<CommentResponse[]>>('/comments/trash') // or a new /comments endpoint
             ]);
             setTutorials(tutRes.data.data);
             setNews(newsRes.data.data);
+            setComments(comRes.data.data); // Update comment state
         } catch (error) {
             console.error("management fetch error: ", error);
         } finally {
             setLoading(false);
         }
     }, []);
+
+    const handleDeleteComment = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this comment?")) return;
+        try {
+            await api.delete(`/comments/${id}`);
+            refreshData();
+        } catch (error) {
+            console.error("Failed to delete comment", error);
+        }
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -162,20 +177,20 @@ export default function ManagementPage() {
                             <form onSubmit={handleCreateNews} className="space-y-4 pt-2">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-slate-300">Title</label>
-                                    <Input 
-                                        placeholder="e.g., System Maintenance Schedule" 
-                                        value={newsTitle} 
-                                        onChange={(e) => setNewsTitle(e.target.value)} 
+                                    <Input
+                                        placeholder="e.g., System Maintenance Schedule"
+                                        value={newsTitle}
+                                        onChange={(e) => setNewsTitle(e.target.value)}
                                         className="bg-slate-950/80 border-slate-800 text-slate-200 text-sm placeholder:text-slate-500 focus-visible:ring-emerald-500"
                                         required
                                     />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-slate-300">Content</label>
-                                    <Textarea 
-                                        placeholder="Write your announcement message here..." 
-                                        value={newsContent} 
-                                        onChange={(e) => setNewsContent(e.target.value)} 
+                                    <Textarea
+                                        placeholder="Write your announcement message here..."
+                                        value={newsContent}
+                                        onChange={(e) => setNewsContent(e.target.value)}
                                         className="bg-slate-950/80 border-slate-800 text-slate-200 text-sm placeholder:text-slate-500 focus-visible:ring-emerald-500 min-h-[140px] resize-y"
                                         required
                                     />
@@ -231,14 +246,14 @@ export default function ManagementPage() {
             {/* Main Tabs Section */}
             <Tabs defaultValue="tutorials" className="w-full space-y-6">
                 <TabsList className="bg-slate-900/80 border border-slate-800 p-1">
-                    <TabsTrigger 
-                        value="tutorials" 
+                    <TabsTrigger
+                        value="tutorials"
                         className="text-xs text-slate-400 shadow-none border-none data-[state=active]:bg-transparent data-[state=active]:text-slate-400 data-[state=active]:shadow-none gap-2"
                     >
                         <FileText className="h-3.5 w-3.5" /> Tutorials ({tutorials.length})
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="news" 
+                    <TabsTrigger
+                        value="news"
                         className="text-xs text-slate-400 shadow-none border-none data-[state=active]:bg-transparent data-[state=active]:text-slate-400 data-[state=active]:shadow-none gap-2"
                     >
                         <Newspaper className="h-3.5 w-3.5" /> News ({news.length})
@@ -271,7 +286,7 @@ export default function ManagementPage() {
                                 ) : tutorials.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center py-12 text-slate-500 text-xs">
-                                            No tutorials found. Click "New Tutorial" to create one.
+                                            No tutorials found. Click New Tutorial to create one.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -281,11 +296,10 @@ export default function ManagementPage() {
                                                 {t.title}
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className={`gap-1 text-[10px] font-medium px-2 py-0.5 ${
-                                                    t.targetAudience === 'MEDICAL' 
-                                                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
-                                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                                }`}>
+                                                <Badge variant="outline" className={`gap-1 text-[10px] font-medium px-2 py-0.5 ${t.targetAudience === 'MEDICAL'
+                                                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                                    }`}>
                                                     <span className={`h-1.5 w-1.5 rounded-full ${t.targetAudience === 'MEDICAL' ? 'bg-blue-400' : 'bg-emerald-400'}`} />
                                                     {t.targetAudience}
                                                 </Badge>
@@ -302,14 +316,14 @@ export default function ManagementPage() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end items-center gap-1">
-                                                    <Link href={`/management/edit/${t.id}`}>
+                                                    <Link href={`/management/tutorial/${t.id}`}>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
                                                             <FileEdit className="h-3.5 w-3.5" />
                                                         </Button>
                                                     </Link>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
                                                         className="h-8 w-8 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
                                                         onClick={() => handleDeleteTutorial(t.id)}
                                                     >
@@ -347,10 +361,10 @@ export default function ManagementPage() {
                                             <h3 className="font-semibold text-slate-100 text-sm leading-snug line-clamp-2">
                                                 {item.title}
                                             </h3>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="h-7 w-7 text-slate-500 hover:text-red-400 hover:bg-red-500/10 shrink-0 -mr-1 -mt-1" 
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7 text-slate-500 hover:text-red-400 hover:bg-red-500/10 shrink-0 -mr-1 -mt-1"
                                                 onClick={() => handleDeleteNews(item.id)}
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
@@ -378,6 +392,49 @@ export default function ManagementPage() {
                             ))}
                         </div>
                     )}
+                </TabsContent>
+                <TabsContent value="comments" className="m-0">
+                    <div className="rounded-xl border border-slate-800/80 bg-slate-900/50 backdrop-blur-sm overflow-hidden shadow-sm">
+                        <Table>
+                            <TableHeader className="bg-slate-900/80 border-b border-slate-800">
+                                <TableRow className="border-slate-800 hover:bg-transparent">
+                                    <TableHead className="text-slate-400 text-xs font-semibold uppercase tracking-wider">User</TableHead>
+                                    <TableHead className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Comment</TableHead>
+                                    <TableHead className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Tutorial</TableHead>
+                                    <TableHead className="text-right text-slate-400 text-xs font-semibold uppercase tracking-wider">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="animate-spin h-5 w-5 mx-auto text-emerald-400" /></TableCell></TableRow>
+                                ) : comments.length === 0 ? (
+                                    <TableRow><TableCell colSpan={4} className="text-center py-12 text-slate-500 text-xs">No active comments to moderate.</TableCell></TableRow>
+                                ) : (
+                                    comments.map((c) => (
+                                        <TableRow key={c.id} className="border-slate-800/60 hover:bg-slate-800/40">
+                                            <TableCell className="text-slate-100 font-medium text-sm">{c.authorName}</TableCell>
+                                            <TableCell className="text-slate-400 text-xs max-w-md truncate">{c.content}</TableCell>
+                                            <TableCell>
+                                                <Link href={`/tutorials/${c.tutorialId}`} className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1">
+                                                    View <FileText className="h-3 w-3" />
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleDeleteComment(c.id)}
+                                                    className="text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

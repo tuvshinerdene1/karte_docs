@@ -4,5 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 
 public record CommentRequest (
         @NotBlank(message = "Comment content cannot be empty") String content,
-        Long tutorialId
+        Long tutorialId,
+        Long parentId
 ){}

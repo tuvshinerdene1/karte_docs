@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,12 +30,23 @@ public class CommentService {
         comment.setTutorial(tutorial);
         comment.setAuthor(securityUtils.getCurrentUser());
 
+        if (request.parentId() != null){
+            Comment parent = commentRepository.findById(request.parentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent comment not found"));
+            comment.setParent(parent);
+        }
+
         return mapToResponse(commentRepository.save(comment));
     }
 
     @Transactional(readOnly = true)
-    public List<CommentResponse> getCommentsByTutorial(Long tutorialId){
-        return commentRepository.findByTutorialIdOrderByCreatedAtDesc(tutorialId).stream().map(this::mapToResponse).toList();
+    public List<CommentResponse> getCommentsByTutorial(Long tutorialId) {
+        // FIX: Only fetch Root comments. The replies will be nested inside them
+        // because of the recursive mapToResponse we built.
+        return commentRepository.findByTutorialIdAndParentIsNullOrderByCreatedAtDesc(tutorialId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Transactional
@@ -55,13 +67,19 @@ public class CommentService {
     }
 
 
-    public CommentResponse mapToResponse(Comment c){
+    public CommentResponse mapToResponse(Comment c) {
+        List<CommentResponse> replyDtos = (c.getReplies() != null)
+                ? c.getReplies().stream().map(this::mapToResponse).toList()
+                : new ArrayList<>();
+
         return new CommentResponse(
                 c.getId(),
                 c.getContent(),
-                c.getAuthor() != null ? c.getAuthor().getFullName() : "Medical Staff",
+                c.getAuthor() != null ? c.getAuthor().getFullName() : "Anonymous",
                 c.getTutorial().getId(),
-                c.getCreatedAt()
+                c.getCreatedAt(),
+                c.getParent() != null ? c.getParent().getId() : null,
+                replyDtos // The mapped list of replies
         );
     }
 

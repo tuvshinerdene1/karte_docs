@@ -22,12 +22,14 @@ export interface ApiResponse<T>{
   timestamp: string;
 }
 
-export interface CommentResponse{
-  id:number;
-  content:string;
-  authorName:string;
-  tutorialId:number;
-  createdAt:string;
+export interface CommentResponse {
+  id: number;
+  content: string;
+  authorName: string;
+  tutorialId: number;
+  createdAt: string;
+  parentId?: number | null; // To know if this is a top-level comment or a reply
+  replies?: CommentResponse[]; // This makes the interface recursive
 }
 
 export interface Tutorial {
