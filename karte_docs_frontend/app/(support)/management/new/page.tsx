@@ -16,6 +16,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ApiResponse } from '@/types';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import { EditorToolbar } from '@/components/tutorial/editor-toolbar';
 
 export default function NewTutorialPage() {
     const router = useRouter();
@@ -25,6 +29,32 @@ export default function NewTutorialPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [isPreview, setIsPreview] = useState(false); // New state for preview
+
+
+    const editor = useEditor({
+        extensions: [
+            StarterKit.configure({
+                // Ensure these are enabled
+                heading: {
+                    levels: [1, 2, 3],
+                },
+                bulletList: {},
+                orderedList: {},
+            }),
+            Image,
+        ],
+        content: content,
+        onUpdate: ({ editor }) => {
+            setContent(editor.getHTML());
+        },
+        editorProps: {
+            attributes: {
+                // Ensure 'tiptap' class is here so the CSS above applies
+                class: 'tiptap prose prose-invert max-w-none focus:outline-none p-4 min-h-[500px] text-slate-200',
+            },
+        },
+        immediatelyRender: false,
+    });
 
     const handleSave = async () => {
         if (!title.trim() || !content.trim()) {
@@ -45,25 +75,28 @@ export default function NewTutorialPage() {
         }
     };
 
-    const onBlurImageSaved = async (blob: Blob) => {
-        // FIX: Use isUploadingImage, not isSubmitting
-        setIsUploadingImage(true);
 
+    const onBlurImageSaved = async (blob: Blob) => {
+        setIsUploadingImage(true);
         const formData = new FormData();
-        formData.append('file', blob, 'redacted_screenshot.png');
+        // Ensure the key is exactly "file" to match @RequestParam("file")
+        formData.append('file', blob, 'redacted.png');
 
         try {
             const response = await api.post<ApiResponse<string>>('/tutorials/images/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                // CRITICAL: Overriding the global JSON header
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
             const imageUrl = response.data.data;
-            setContent(prev => prev + `\n\n![Tutorial Step](${imageUrl})\n`);
-            alert("Image uploaded and added to editor.");
-        } catch (error) {
-            console.error("Cloudinary upload failed:", error);
-            alert("Failed to upload image to cloud");
+            editor?.chain().focus().setImage({ src: imageUrl }).run();
+        } catch (error: any) {
+            // Log the specific response from Spring Boot to see the error message
+            console.error("Server Error Detail:", error.response?.data);
+            alert(`Upload error: ${error.response?.data?.message || error.message}`);
         } finally {
-            setIsUploadingImage(false); // Reset the correct state
+            setIsUploadingImage(false);
         }
     };
 
@@ -134,11 +167,15 @@ export default function NewTutorialPage() {
                                             </DialogContent>
                                         </Dialog>
                                     </div>
-                                    <Textarea
+                                    {/* <Textarea
                                         value={content}
                                         onChange={(e) => setContent(e.target.value)}
                                         className="bg-slate-950/80 border-slate-800 text-slate-200 min-h-[450px] font-mono"
-                                    />
+                                    /> */}
+                                    <div className="bg-slate-950/80 border border-slate-800 rounded-md">
+                                        <EditorToolbar editor={editor} />
+                                        <EditorContent editor={editor} />
+                                    </div>
                                 </div>
                             </div>
                         )}

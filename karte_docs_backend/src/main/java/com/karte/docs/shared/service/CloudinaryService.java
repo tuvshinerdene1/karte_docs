@@ -16,9 +16,29 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
 
-    public String uploadImage(MultipartFile file) throws IOException{
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),ObjectUtils.asMap("folder", "karte_tutorials"));
+    public String uploadImage(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IOException("File is empty or null");
+        }
 
-        return uploadResult.get("url").toString();
+        try {
+            // resource_type: auto is critical for blobs/data sent from browser
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap(
+                            "folder", "karte_tutorials",
+                            "resource_type", "auto"
+                    ));
+
+            // Use secure_url (https) instead of url (http)
+            Object url = uploadResult.get("secure_url");
+            if (url == null) {
+                url = uploadResult.get("url");
+            }
+
+            return url.toString();
+        } catch (Exception e) {
+            e.printStackTrace(); // This WILL show the red text in IntelliJ now
+            throw new IOException("Cloudinary API Error: " + e.getMessage());
+        }
     }
 }

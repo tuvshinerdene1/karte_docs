@@ -19,10 +19,14 @@ public class CloudinaryConfig {
     private String apiSecret;
 
     @Bean
-    public Cloudinary cloudinary(){
+    public Cloudinary cloudinary() {
+        // ADD THIS PRINT LINE
+        System.out.println("DEBUG: Cloudinary Name is " + cloudName);
+
         return new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", cloudName,
                 "api_key", apiKey,
-                "api_secret", apiSecret));
+                "api_secret", apiSecret
+        ));
     }
 }
