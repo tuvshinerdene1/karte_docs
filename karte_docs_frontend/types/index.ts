@@ -82,3 +82,14 @@ export interface AuditLog {
   details: string;
   timestamp: string;
 }
+
+export interface AuditLog{
+  id: number;
+  action: string;
+  module: string;
+  targetId: number;
+  details: string;
+  performedByName: string,
+  performedByEmail: string;
+  timestamp: string;
+}

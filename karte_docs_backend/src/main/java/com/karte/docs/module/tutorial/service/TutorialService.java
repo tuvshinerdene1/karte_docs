@@ -1,5 +1,6 @@
 package com.karte.docs.module.tutorial.service;
 
+import com.karte.docs.module.audit.service.AuditService;
 import com.karte.docs.module.tutorial.dto.*;
 import com.karte.docs.module.tutorial.entity.*;
 import com.karte.docs.module.tutorial.repository.*;
@@ -20,6 +21,7 @@ public class TutorialService {
     private final SecurityUtils securityUtils;
     private final ReactionRepository reactionRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final AuditService auditService;
 
 
 
@@ -73,6 +75,9 @@ public class TutorialService {
             throw new ResourceNotFoundException("Tutorial not found");
         }
         tutorialRepository.deleteById(id);
+        auditService.log("DELETE", "TUTORIAL", id, "Deleted tutorial with id : " + id, securityUtils.getCurrentUser());
+
+
     }
 
     @Transactional(readOnly = true)
