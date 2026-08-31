@@ -2,6 +2,7 @@ package com.karte.docs.module.tutorial.controller;
 
 import com.karte.docs.module.tutorial.dto.TutorialResponse;
 import com.karte.docs.module.tutorial.dto.TutorialRequest;
+import com.karte.docs.module.tutorial.dto.TutorialVersionResponse;
 import com.karte.docs.module.tutorial.entity.TargetAudience;
 import com.karte.docs.module.tutorial.service.TutorialService;
 import com.karte.docs.shared.dto.ApiResponse;
@@ -71,5 +72,11 @@ public class TutorialController {
     @GetMapping("/search")
     public ApiResponse<List<TutorialResponse>> search (@RequestParam("q") String query){
         return ApiResponse.success(tutorialService.search(query), "Search results for : " + query);
+    }
+
+    // Add this endpoint
+    @GetMapping("/{id}/versions")
+    public ApiResponse<List<TutorialVersionResponse>> getVersions(@PathVariable Long id) {
+        return ApiResponse.success(tutorialService.getVersionsByTutorialId(id), "History fetched");
     }
 }

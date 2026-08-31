@@ -50,12 +50,10 @@ export interface Tutorial {
 export interface TutorialVersion {
   id: number;
   versionNumber: number;
-  title: string;
-  content: string;
   changelog: string;
+  authorName: string; // Add this
   createdAt: string;
 }
-
 export interface News {
   id: number;
   title: string;

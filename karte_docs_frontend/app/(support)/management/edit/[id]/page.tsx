@@ -160,7 +160,7 @@ export default function EditTutorialPage({ params }: { params: Promise<{ id: str
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-slate-950/80 border-slate-800 text-lg py-6" />
+                                <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white border-slate-800 text-lg py-6" />
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
                                         <Label className="text-xs font-bold text-slate-400 uppercase">Editor</Label>
@@ -193,12 +193,12 @@ export default function EditTutorialPage({ params }: { params: Promise<{ id: str
                                 value={changelog}
                                 onChange={(e) => setChangelog(e.target.value)}
                                 placeholder="Explain what you updated..."
-                                className="bg-slate-950/80 border-slate-800 text-xs min-h-[100px]"
+                                className="bg-white border-slate-800 text-xs min-h-[100px]"
                             />
                             <Label className="text-xs font-bold text-slate-400 uppercase block mt-4">Audience</Label>
                             <Select value={audience} onValueChange={setAudience}>
-                                <SelectTrigger className="bg-slate-950 border-slate-800"><SelectValue /></SelectTrigger>
-                                <SelectContent className="bg-slate-900 border-slate-800"><SelectItem value="MEDICAL">Medical</SelectItem><SelectItem value="SUPPORT">Support</SelectItem></SelectContent>
+                                <SelectTrigger className="bg-white border-slate-800"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-white border-slate-800"><SelectItem value="MEDICAL">Medical</SelectItem><SelectItem value="SUPPORT">Support</SelectItem></SelectContent>
                             </Select>
                         </div>
                     </Card>

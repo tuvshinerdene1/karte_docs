@@ -139,4 +139,23 @@ public class TutorialService {
                 t.getUpdatedAt()
         );
     }
+
+    // Add this method
+    public List<TutorialVersionResponse> getVersionsByTutorialId(Long tutorialId) {
+        // Ensure the tutorial exists
+        if (!tutorialRepository.existsById(tutorialId)) {
+            throw new ResourceNotFoundException("Tutorial not found");
+        }
+
+        return versionRepository.findByTutorialIdOrderByVersionNumberDesc(tutorialId)
+                .stream()
+                .map(v -> new TutorialVersionResponse(
+                        v.getId(),
+                        v.getVersionNumber(),
+                        v.getChangelog() != null ? v.getChangelog() : "No notes provided",
+                        v.getAuthor() != null ? v.getAuthor().getFullName() : "System",
+                        v.getCreatedAt()
+                ))
+                .toList();
+    }
 }
