@@ -71,12 +71,15 @@ public class TutorialService {
 
     @Transactional
     public void deleteTutorial(Long id){
-        if (!tutorialRepository.existsById(id)){
-            throw new ResourceNotFoundException("Tutorial not found");
-        }
+//        if (!tutorialRepository.existsById(id)){
+//            throw new ResourceNotFoundException("Tutorial not found");
+//        }
+//        tutorialRepository.deleteById(id);
+//        auditService.log("DELETE", "TUTORIAL", id, "Deleted tutorial with id : " + id, securityUtils.getCurrentUser());
+        Tutorial t = tutorialRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Not found"));
         tutorialRepository.deleteById(id);
-        auditService.log("DELETE", "TUTORIAL", id, "Deleted tutorial with id : " + id, securityUtils.getCurrentUser());
 
+        auditService.log("DELETE", "TUTORIAL", id, "Moved tutorial to trash: " + t.getTitle(), securityUtils.getCurrentUser());
 
     }
 
@@ -93,6 +96,7 @@ public class TutorialService {
                 .orElseThrow(() -> new ResourceNotFoundException("Deleted tutorial not found"));
         tutorial.setDeletedAt(null);
         tutorialRepository.save(tutorial);
+        auditService.log("RESTORE", "TUTORIAL", id, "Restored tutorial with id : " + id, securityUtils.getCurrentUser());
     }
     // get tutorials by audience (medical vs support)
     @Transactional(readOnly = true)

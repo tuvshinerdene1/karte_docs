@@ -1,5 +1,6 @@
 package com.karte.docs.module.question.service;
 
+import com.karte.docs.module.audit.service.AuditService;
 import com.karte.docs.module.question.dto.*;
 import com.karte.docs.module.question.entity.*;
 import com.karte.docs.module.question.repository.*;
@@ -18,6 +19,7 @@ public class QuestionService {
     private final AnswerRepository answerRepository;
     private final SecurityUtils securityUtils;
     private final EmailService emailService;
+    private final AuditService auditService;
 
     @Transactional
     public QuestionResponse createQuestion(QuestionRequest request){
@@ -57,6 +59,8 @@ public class QuestionService {
 
             emailService.sendSimpleEmail(q.getAuthor().getEmail(), subject, body);
         }
+        auditService.log("ANSWER", "QUESTION", questionId, "Provided answer to user ticket: "+questionId, securityUtils.getCurrentUser());
+
         return mapToResponse(questionRepository.save(q));
     }
 
@@ -66,11 +70,16 @@ public class QuestionService {
         q.setPublic(isPublic);
         q.setStatus(isPublic ? QuestionStatus.PUBLISHED : QuestionStatus.ANSWERED);
         questionRepository.save(q);
+        auditService.log("TOGGLE", "QUESTION", id, "Toggled question public: "+id, securityUtils.getCurrentUser());
+
     }
 
     @Transactional
     public void deleteQuestion(Long id){
+
         questionRepository.deleteById(id);
+        auditService.log("DELETE", "QUESTION", id, "Deleted  question with id: "+id, securityUtils.getCurrentUser());
+
     }
 
     @Transactional
@@ -83,6 +92,8 @@ public class QuestionService {
         Question q = questionRepository.findByIdIncludingDeleted(id).orElseThrow(() -> new ResourceNotFoundException("Deleted question not found"));
         q.setDeletedAt(null);
         questionRepository.save(q);
+        auditService.log("RESTORE", "QUESTION", id, "Restored question with id: "+id, securityUtils.getCurrentUser());
+
     }
 
     public List<QuestionResponse> getPublicQuestions(){

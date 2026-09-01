@@ -1,5 +1,6 @@
 package com.karte.docs.module.comment.service;
 
+import com.karte.docs.module.audit.service.AuditService;
 import com.karte.docs.module.comment.dto.*;
 import com.karte.docs.module.comment.entity.Comment;
 import com.karte.docs.module.comment.repository.CommentRepository;
@@ -20,6 +21,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TutorialService tutorialService;
     private final SecurityUtils securityUtils;
+    private final AuditService auditService;
 
     @Transactional
     public CommentResponse addComment(CommentRequest request){
@@ -52,6 +54,7 @@ public class CommentService {
     @Transactional
     public void deleteComment(Long id){
         commentRepository.deleteById(id);
+        auditService.log("DELETE", "COMMENT", id, "Deleted user comment from tutorial ID: "+id, securityUtils.getCurrentUser());
     }
 
     @Transactional(readOnly = true)
@@ -64,6 +67,7 @@ public class CommentService {
         Comment comment = commentRepository.findByIdIncludingDeleted(id).orElseThrow(() -> new ResourceNotFoundException("Deleted comment not found"));
         comment.setDeletedAt(null);
         commentRepository.save(comment);
+        auditService.log("RESTORE", "COMMENT", id, "Restored user comment from tutorial ID: "+id, securityUtils.getCurrentUser());
     }
 
 
