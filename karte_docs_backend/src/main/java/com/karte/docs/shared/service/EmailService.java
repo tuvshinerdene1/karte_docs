@@ -16,13 +16,14 @@ public class EmailService {
     public void sendSimpleEmail(String to, String subject, String text){
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("karte-docs@system.mn");
+            message.setFrom("tuvshin.erdene25@gmail.com");
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
             mailSender.send(message);
             log.info("Email sent successfully to {}", to);
         } catch (Exception e){
+            e.printStackTrace();
             log.error("Failed to send email to {} : {}", to, e.getMessage());
         }
     }

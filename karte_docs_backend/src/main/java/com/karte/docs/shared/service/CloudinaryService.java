@@ -37,7 +37,6 @@ public class CloudinaryService {
 
             return url.toString();
         } catch (Exception e) {
-            e.printStackTrace(); // This WILL show the red text in IntelliJ now
             throw new IOException("Cloudinary API Error: " + e.getMessage());
         }
     }
