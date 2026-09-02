@@ -25,7 +25,8 @@ public class DataInitializer implements CommandLineRunner {
             // 3. Create Medical User 2 if not exists
             createUserIfNotFound("doctor2@hospital.mn", "doctor123", Role.ROLE_MEDICAL, "DR. Dorjoo");
 
-        createUserIfNotFound("mendbayar45@gmail.com", "doctor123", Role.ROLE_MEDICAL, "DR. Mendee");
+            createUserIfNotFound("mendbayar45@gmail.com", "doctor123", Role.ROLE_MEDICAL, "DR. Mendee");
+            createUserIfNotFound("myagmardashdavaadulam@gmail.com", "doctor123", Role.ROLE_MEDICAL, "DR. Not Dulmaa");
 
     }
 
